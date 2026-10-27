@@ -264,7 +264,10 @@ export function evaluateScheduleForTrigger(params: {
 
   const dateIso = getLocalDateIso(now);
   // Ensure the schedule row matches the user's current local date (prevents stale row triggers across midnight rollover)
-  if (todayRow.tanggal_lengkap !== dateIso) {
+  const isDateMatch =
+    todayRow.tanggal_lengkap === dateIso ||
+    todayRow.tanggal === now.getDate();
+  if (!isDateMatch) {
     return null;
   }
 

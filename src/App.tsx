@@ -365,6 +365,25 @@ export default function App() {
     setAdzanPlayback(null);
   }, []);
 
+  // Prime audio element on first user interaction to unlock browser autoplay policy
+  useEffect(() => {
+    const primeAudioElement = () => {
+      if (adzanAudioRef.current) {
+        try {
+          adzanAudioRef.current.load();
+        } catch {
+          // Ignore
+        }
+      }
+    };
+    window.addEventListener('pointerdown', primeAudioElement, { once: true, passive: true });
+    window.addEventListener('keydown', primeAudioElement, { once: true, passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', primeAudioElement);
+      window.removeEventListener('keydown', primeAudioElement);
+    };
+  }, []);
+
   // Synchronize live volume changes with active Adzan audio element
   const handleSetAdzanVolume = useCallback((newVol: number) => {
     const clamped = clampVolume(newVol);
@@ -652,7 +671,9 @@ export default function App() {
         );
 
         const todayIso = getLocalDateIso(now);
-        const todayRow = sched.jadwal.find((j) => j.tanggal_lengkap === todayIso);
+        const todayRow =
+          sched.jadwal.find((j) => j.tanggal_lengkap === todayIso) ||
+          sched.jadwal.find((j) => j.tanggal === now.getDate());
         if (!todayRow) return;
 
         const trigger = evaluateScheduleForTrigger({
@@ -753,11 +774,13 @@ export default function App() {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityOrSettings);
+    window.addEventListener('focus', handleVisibilityOrSettings);
     window.addEventListener('ziezan:shalat-settings-updated', checkPrayerReminder);
 
     return () => {
       window.clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityOrSettings);
+      window.removeEventListener('focus', handleVisibilityOrSettings);
       window.removeEventListener('ziezan:shalat-settings-updated', checkPrayerReminder);
     };
   }, [handlePlayAdzanAudio, showToast]);
@@ -1260,7 +1283,7 @@ export default function App() {
 
       {/* Hidden Global Audio Elements (Murottal & Adzan) */}
       <audio ref={audioRef} preload="metadata" />
-      <audio ref={adzanAudioRef} preload="none" />
+      <audio ref={adzanAudioRef} preload="auto" />
 
       {/* Top Navigation Brand Bar (Hidden on Surah Reader Detail View) */}
       <Navbar

@@ -36,7 +36,7 @@ export const DEFAULT_SHALAT_LOCATION: ShalatLocationPreference = {
 };
 
 export const DEFAULT_SHALAT_REMINDERS: ShalatReminderSettings = {
-  enabled: false,
+  enabled: true,
   audioEnabled: true,
   sound: 'adzan-auto',
   volume: 0.85,
@@ -52,7 +52,7 @@ export const DEFAULT_SHALAT_REMINDERS: ShalatReminderSettings = {
     isya: true,
   },
   triggeredEvents: {},
-  schemaVersion: 2,
+  schemaVersion: 3,
 };
 
 const IDB_NAME = 'ziezan_quran_idb_v2';
@@ -135,7 +135,7 @@ export const storageService = {
       STORAGE_KEYS.SHALAT_REMINDERS,
       {}
     );
-    const isV2 = saved.schemaVersion === 2;
+    const isV3 = saved.schemaVersion === 3;
     const rawSound = saved.sound;
     const validSound =
       rawSound === 'adzan-auto' ||
@@ -145,9 +145,9 @@ export const storageService = {
         ? rawSound
         : 'adzan-auto';
 
-    // Migrate v1 default 'adzan-chime' to 'adzan-auto' so mapped MP3 streams are active by default
+    // Migrate v1/v2 default sound to 'adzan-auto' so mapped MP3 streams are active by default
     const resolvedSound =
-      !isV2 && validSound === 'adzan-chime' ? 'adzan-auto' : validSound;
+      !isV3 && (validSound === 'adzan-chime' || !saved.sound) ? 'adzan-auto' : validSound;
 
     const resolvedVolume =
       typeof saved.volume === 'number' && Number.isFinite(saved.volume)
@@ -159,9 +159,13 @@ export const storageService = {
         ? saved.audioEnabled
         : resolvedSound !== 'mute';
 
+    const resolvedEnabled =
+      isV3 && typeof saved.enabled === 'boolean' ? saved.enabled : true;
+
     return {
       ...DEFAULT_SHALAT_REMINDERS,
       ...saved,
+      enabled: resolvedEnabled,
       audioEnabled: resolvedAudioEnabled,
       sound: resolvedSound,
       volume: resolvedVolume,
@@ -172,11 +176,16 @@ export const storageService = {
       prayers: {
         ...DEFAULT_SHALAT_REMINDERS.prayers,
         ...(saved.prayers || {}),
-        // Ensure imsak & terbit default to true on v1 -> v2 migration unless already v2
-        ...(!isV2
+        // Ensure standard prayer times default to true on migration
+        ...(!isV3
           ? {
               imsak: true,
+              subuh: true,
               terbit: true,
+              dzuhur: true,
+              ashar: true,
+              maghrib: true,
+              isya: true,
             }
           : {}),
       },
@@ -184,7 +193,7 @@ export const storageService = {
         saved.triggeredEvents && typeof saved.triggeredEvents === 'object'
           ? saved.triggeredEvents
           : {},
-      schemaVersion: 2,
+      schemaVersion: 3,
     };
   },
 
@@ -195,7 +204,7 @@ export const storageService = {
         typeof settings.volume === 'number' && Number.isFinite(settings.volume)
           ? Math.max(0, Math.min(1, Math.round(settings.volume * 100) / 100))
           : 0.85,
-      schemaVersion: 2,
+      schemaVersion: 3,
     };
     safeEncryptedWrite(STORAGE_KEYS.SHALAT_REMINDERS, normalized);
     if (typeof window !== 'undefined') {
