@@ -1,5 +1,7 @@
 import { DEFAULT_PREFERENCES } from '../config/brand';
 import {
+  DailyTaskItem,
+  DailyTasksState,
   SavedQiblaPreference,
   ShalatLocationPreference,
   ShalatReminderSettings,
@@ -27,6 +29,7 @@ const STORAGE_KEYS = {
   SHALAT_REMINDERS: 'ziezan_quran_shalat_reminders_v1',
   FAVORITE_DOAS: 'ziezan_quran_favorite_doas_v1',
   QIBLA_PREFERENCE: 'ziezan_quran_qibla_pref_v1',
+  DAILY_TASKS: 'ziezan_quran_daily_tasks_v1',
 };
 
 export const DEFAULT_SHALAT_LOCATION: ShalatLocationPreference = {
@@ -396,6 +399,38 @@ export const storageService = {
     const arr = Array.from(current);
     safeEncryptedWrite(STORAGE_KEYS.READ_AYATS, arr);
     return arr;
+  },
+
+  getDailyTasks(): DailyTasksState {
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const defaultTasks: DailyTaskItem[] = [
+      { id: 'shalat-subuh', title: 'Shalat Subuh Tepat Waktu', description: 'Termasuk shalat sunnah Qabliyah Subuh', completed: false, category: 'shalat' },
+      { id: 'shalat-dzuhur', title: 'Shalat Zuhur Tepat Waktu', description: 'Berjamaah di masjid / awal waktu', completed: false, category: 'shalat' },
+      { id: 'shalat-ashar', title: 'Shalat Asar Tepat Waktu', description: 'Menjaga shalat Wustha awal waktu', completed: false, category: 'shalat' },
+      { id: 'shalat-maghrib', title: 'Shalat Magrib Tepat Waktu', description: 'Berjamaah dan dzikir sesudah shalat', completed: false, category: 'shalat' },
+      { id: 'shalat-isya', title: 'Shalat Isya Tepat Waktu', description: 'Dilanjutkan shalat Sunnah / Ba\'diyah', completed: false, category: 'shalat' },
+      { id: 'tilawah-quran', title: 'Tilawah Al-Qur\'an Harian', description: 'Minimal 1 Halaman atau 1 Ruku\'', completed: false, category: 'quran' },
+      { id: 'dzikir-harian', title: 'Dzikir Pagi atau Petang', description: 'Membaca dzikir perlindungan shahih', completed: false, category: 'dzikir' },
+      { id: 'doa-harian', title: 'Membaca Doa Harian', description: 'Memohon petunjuk dan perlindungan', completed: false, category: 'doa' },
+    ];
+
+    const saved = safeEncryptedRead<DailyTasksState | null>(STORAGE_KEYS.DAILY_TASKS, null);
+    if (!saved || saved.dateIso !== todayIso) {
+      const freshState: DailyTasksState = { dateIso: todayIso, tasks: defaultTasks };
+      safeEncryptedWrite(STORAGE_KEYS.DAILY_TASKS, freshState);
+      return freshState;
+    }
+    return saved;
+  },
+
+  toggleDailyTask(taskId: string): DailyTasksState {
+    const current = this.getDailyTasks();
+    const updatedTasks = current.tasks.map((t) =>
+      t.id === taskId ? { ...t, completed: !t.completed } : t
+    );
+    const updatedState: DailyTasksState = { ...current, tasks: updatedTasks };
+    safeEncryptedWrite(STORAGE_KEYS.DAILY_TASKS, updatedState);
+    return updatedState;
   },
 
   exportUserData(): string {

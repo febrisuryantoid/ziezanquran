@@ -463,81 +463,79 @@ export const DoaView: React.FC<DoaViewProps> = ({
           return (
             <article
               key={doa.id}
-              className="rounded-2xl border border-[#E3E9E3] bg-white p-5 transition-colors hover:border-[#046D38]/50 sm:p-6"
+              className="rounded-2xl border border-[#E3E9E3] bg-white p-4 sm:p-6 transition-colors hover:border-[#046D38]/50"
             >
               {/* Card Top Bar */}
-              <div className="flex flex-wrap items-start justify-between gap-2.5 border-b border-[#E3E9E3] pb-3.5">
+              <div className="flex flex-col gap-3 border-b border-[#E3E9E3] pb-3.5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5 min-[360px]:gap-2">
-                    <span className="inline-flex h-5.5 sm:h-6 min-w-[26px] items-center justify-center rounded-lg bg-[#035328] px-1.5 sm:px-2 font-mono text-[11px] sm:text-xs font-bold text-[#FBC647]">
+                    <span className="inline-flex h-5.5 min-w-[26px] items-center justify-center rounded-lg bg-[#035328] px-2 font-mono text-[11px] font-bold text-[#FBC647]">
                       #{doa.id}
                     </span>
                     <button
                       type="button"
                       onClick={() => setSelectedGrup(doa.grup)}
-                      className="rounded-lg border border-[#E3E9E3] bg-[#F7F8F5] px-2 py-0.5 text-[10px] sm:text-xs font-semibold text-[#035328] hover:border-[#046D38] truncate max-w-[170px]"
+                      className="rounded-lg border border-[#E3E9E3] bg-[#F7F8F5] px-2 py-0.5 text-[10px] sm:text-xs font-semibold text-[#035328] hover:border-[#046D38] truncate max-w-[200px]"
                     >
                       {doa.grup}
                     </button>
                   </div>
-                  <h2 className="mt-1.5 font-serif text-base min-[360px]:text-lg sm:text-xl font-bold text-[#24352B]">
+                  <h2 className="mt-1.5 font-serif text-base min-[360px]:text-lg sm:text-xl font-bold text-[#24352B] leading-snug">
                     {doa.nama}
                   </h2>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
+                {/* Action Buttons: 4 Grid Columns on Mobile, Inline Flex on Desktop */}
+                <div className="grid grid-cols-4 sm:flex sm:items-center gap-1.5 w-full sm:w-auto shrink-0">
                   <button
                     type="button"
                     onClick={() => handleToggleFavorite(doa.id)}
                     aria-label={isFav ? 'Hapus dari favorit' : 'Simpan ke favorit'}
                     title={isFav ? 'Hapus dari favorit' : 'Simpan ke favorit'}
-                    className={`inline-flex items-center gap-1 rounded-xl border px-2 min-[360px]:px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer ${
+                    className={`inline-flex min-h-[36px] items-center justify-center gap-1 rounded-xl border px-1.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer ${
                       isFav
                         ? 'border-[#035328] bg-[#035328] text-white'
                         : 'border-[#E3E9E3] bg-[#F7F8F5] text-[#24352B] hover:border-[#046D38]'
                     }`}
                   >
                     <Heart
-                      className={`h-3.5 w-3.5 ${
+                      className={`h-3.5 w-3.5 shrink-0 ${
                         isFav ? 'fill-[#FBC647] text-[#FBC647]' : 'text-[#68756C]'
                       }`}
                     />
-                    <span className="hidden sm:inline">Favorit</span>
+                    <span className="hidden min-[380px]:inline text-[11px] sm:text-xs">Favorit</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleCopyDoa(doa)}
                     aria-label="Salin teks doa"
-                    className="inline-flex items-center gap-1 rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-2 min-[360px]:px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-[#24352B] hover:border-[#046D38] cursor-pointer"
+                    className="inline-flex min-h-[36px] items-center justify-center gap-1 rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-1.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold text-[#24352B] hover:border-[#046D38] cursor-pointer"
                   >
                     {isCopied ? (
-                      <Check className="h-3.5 w-3.5 text-[#046D38]" />
+                      <Check className="h-3.5 w-3.5 text-[#046D38] shrink-0" />
                     ) : (
-                      <Copy className="h-3.5 w-3.5 text-[#68756C]" />
+                      <Copy className="h-3.5 w-3.5 text-[#68756C] shrink-0" />
                     )}
-                    <span className="hidden sm:inline">
-                      {isCopied ? 'Tersalin' : 'Salin'}
-                    </span>
+                    <span className="text-[11px] sm:text-xs">{isCopied ? 'Salin' : 'Salin'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleShareDoa(doa)}
                     aria-label="Bagikan doa"
-                    className="inline-flex items-center gap-1 rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-2 min-[360px]:px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-[#24352B] hover:border-[#046D38] cursor-pointer"
+                    className="inline-flex min-h-[36px] items-center justify-center gap-1 rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-1.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold text-[#24352B] hover:border-[#046D38] cursor-pointer"
                   >
-                    <Share2 className="h-3.5 w-3.5 text-[#68756C]" />
-                    <span className="hidden sm:inline">Bagikan</span>
+                    <Share2 className="h-3.5 w-3.5 text-[#68756C] shrink-0" />
+                    <span className="text-[11px] sm:text-xs">Bagi</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleOpenDetailModal(doa)}
-                    className="inline-flex items-center gap-1 rounded-xl border border-[#035328] bg-white px-2.5 min-[360px]:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-[#035328] hover:bg-[#035328] hover:text-white cursor-pointer"
+                    className="inline-flex min-h-[36px] items-center justify-center gap-1 rounded-xl border border-[#035328] bg-white px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-bold text-[#035328] hover:bg-[#035328] hover:text-white cursor-pointer"
                   >
-                    <span>Detail</span>
+                    <span className="text-[11px] sm:text-xs">Detail</span>
                   </button>
                 </div>
               </div>
@@ -547,8 +545,8 @@ export const DoaView: React.FC<DoaViewProps> = ({
                 <div
                   dir="rtl"
                   lang="ar"
-                  style={{ fontSize: `${Math.max(24, arabicFontSize)}px` }}
-                  className={`mt-5 text-right leading-[2.15] text-[#24352B] ${arabicFontClass}`}
+                  style={{ fontSize: `${Math.max(22, arabicFontSize)}px` }}
+                  className={`mt-4 text-right leading-[2.2] text-[#24352B] break-words ${arabicFontClass}`}
                 >
                   {doa.ar}
                 </div>

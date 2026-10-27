@@ -281,3 +281,21 @@ export interface MabimsEventsResponse {
   count: number;
   events: MabimsEventItem[];
 }
+
+// ============================================================================
+// 5. TUGAS IBADAH HARIAN (Daily Tasks & Ibadah Tracker)
+// ============================================================================
+
+export interface DailyTaskItem {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  category: 'shalat' | 'quran' | 'dzikir' | 'doa';
+}
+
+export interface DailyTasksState {
+  dateIso: string;
+  tasks: DailyTaskItem[];
+}
+

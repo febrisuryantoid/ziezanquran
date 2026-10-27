@@ -164,9 +164,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      {/* Top Brand Header Bar */}
+      {/* Top Brand Header Bar (On mobile, HomeView uses its own Hero Header over the mosque backdrop) */}
       <header
-        className="sticky top-0 z-40 border-b transition-colors"
+        className={`sticky top-0 z-40 border-b transition-colors ${
+          activeTab === 'home' ? 'hidden lg:block' : 'block'
+        }`}
         style={{
           backgroundColor: 'var(--color-header)',
           borderColor: 'rgba(255, 255, 255, 0.10)',

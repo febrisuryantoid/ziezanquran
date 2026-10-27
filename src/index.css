@@ -250,3 +250,26 @@ audio {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Responsive Beranda Background (Portrait vs Landscape) */
+.beranda-bg-layer {
+  background-image: url('/assets/aistudio/bg-potrait_806f7ab7.png');
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+}
+
+@media (orientation: landscape), (min-width: 768px) {
+  .beranda-bg-layer {
+    background-image: url('/assets/aistudio/bg-landscape_42f05623.png');
+    background-position: center top;
+  }
+}
+
+.shalat-banner-bg {
+  background-image: url('/assets/aistudio/bg-landscape_42f05623.png');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+}
+

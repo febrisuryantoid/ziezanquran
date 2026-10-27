@@ -47,22 +47,28 @@ export default defineConfig(() => {
           categories: ['lifestyle', 'education', 'utilities', 'books'],
           icons: [
             {
-              src: '/icons/ziezan-quran.png',
+              src: '/pwa-192x192.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/icons/ziezan-quran.png',
+              src: '/pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/icons/ziezan-quran.png',
+              src: '/pwa-maskable-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable',
+            },
+            {
+              src: '/icons/ziezan-quran.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any',
             },
           ],
           shortcuts: [
