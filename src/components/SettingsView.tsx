@@ -1,24 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Building2,
   CheckCircle2,
-  Code2,
   Database,
   Download,
-  Globe,
-  Info,
-  Mail,
   RotateCcw,
-  ShieldCheck,
   Smartphone,
-  Sparkles,
   Volume2,
 } from 'lucide-react';
 import {
   APP_CONFIG,
-  APP_INFO,
   ARABIC_FONT_OPTIONS,
-  BRAND_LOGO_PATH,
   DEFAULT_PREFERENCES,
   QARI_OPTIONS,
 } from '../config/brand';
@@ -47,7 +38,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [isSyncingOffline, setIsSyncingOffline] = useState(false);
-  const [logoError, setLogoError] = useState(false);
 
   const selectedFontObj =
     ARABIC_FONT_OPTIONS.find((f) => f.id === preferences.arabicFontFamily) ||
@@ -81,7 +71,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             Tampilan & Pengaturan
           </h1>
           <p className="text-fluid-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
-            Sesuaikan tipografi mushaf, qari murottal, dan informasi aplikasi.
+            Sesuaikan tipografi mushaf, qari murottal, dan penyimpanan offline.
           </p>
         </div>
 
@@ -501,227 +491,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
       </div>
-
-      {/* 4. Dedicated Section: Informasi Aplikasi, Keamanan & Profil Pengembang (Febri Suryanto / Ziezan Solutions) */}
-      <section
-        className="card-surface space-y-4"
-        itemScope
-        itemType="https://schema.org/SoftwareApplication"
-      >
-        <div
-          className="flex items-center justify-between gap-3 pb-3 border-b"
-          style={{ borderColor: 'var(--color-border)' }}
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <Info className="w-4 h-4 text-[#046D38] shrink-0" />
-            <h2
-              className="font-display text-fluid-lg font-bold truncate"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Informasi Aplikasi & Pengembang
-            </h2>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#046D38] bg-[#EDF5F0] px-2.5 py-0.5 rounded-lg"
-              title="Data lokal terenkripsi dengan integritas MAC"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">Terenkripsi</span>
-            </span>
-            <span
-              itemProp="softwareVersion"
-              className="text-xs font-mono-num font-semibold shrink-0"
-              style={{ color: 'var(--color-primary)' }}
-            >
-              v{APP_INFO.version}
-            </span>
-          </div>
-        </div>
-
-        {/* Brand Identity & Full App Description */}
-        <div className="flex flex-col sm:flex-row items-start gap-3.5 sm:gap-4">
-          {!logoError && (
-            <img
-              src={BRAND_LOGO_PATH}
-              alt={APP_CONFIG.appName}
-              referrerPolicy="no-referrer"
-              onError={() => setLogoError(true)}
-              className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-contain shrink-0 ring-1 ring-[#E3E9E3] bg-[#F7F8F5] p-1"
-            />
-          )}
-          <div className="space-y-1.5 min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3
-                itemProp="name"
-                className="font-display text-base sm:text-lg font-bold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                {APP_CONFIG.appName}
-              </h3>
-              <span className="text-xs text-[#68756C]">·</span>
-              <span className="text-xs font-medium text-[#046D38]">{APP_INFO.edition}</span>
-              <span className="text-xs text-[#68756C]">·</span>
-              <a
-                itemProp="url"
-                href={APP_INFO.siteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-mono-num font-semibold text-[#046D38] hover:underline"
-              >
-                {APP_INFO.domain}
-              </a>
-            </div>
-            <p
-              className="text-xs sm:text-sm font-medium italic"
-              style={{ color: 'var(--color-primary)' }}
-            >
-              &ldquo;{APP_CONFIG.tagline}&rdquo;
-            </p>
-            <p
-              itemProp="description"
-              className="text-fluid-xs leading-relaxed pt-0.5"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {APP_INFO.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Developer Profile Card */}
-        <div
-          itemProp="author"
-          itemScope
-          itemType="https://schema.org/Person"
-          className="rounded-2xl p-4 sm:p-5 border space-y-3 bg-[#FAFDFB]"
-          style={{
-            borderColor: 'rgba(4, 109, 56, 0.22)',
-          }}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b pb-3" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="space-y-0.5 min-w-0">
-              <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
-                <Code2 className="w-3.5 h-3.5 shrink-0" />
-                <span>Kreator & Pengembang Utama</span>
-              </div>
-              <h4
-                itemProp="name"
-                className="font-display text-lg sm:text-xl font-bold tracking-tight"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                {APP_INFO.developerName}
-              </h4>
-              <p
-                className="text-xs sm:text-[13px] font-semibold flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
-                style={{ color: 'var(--color-primary)' }}
-              >
-                <span itemProp="jobTitle">{APP_INFO.developerRole}</span>
-                <span aria-hidden="true">·</span>
-                <span
-                  itemProp="worksFor"
-                  itemScope
-                  itemType="https://schema.org/Organization"
-                  className="inline-flex items-center gap-1 font-bold text-[#035328]"
-                >
-                  <Building2 className="w-3.5 h-3.5 text-[#046D38] shrink-0" />
-                  <span itemProp="name">{APP_INFO.agencyName}</span>
-                </span>
-              </p>
-            </div>
-
-            <a
-              href={APP_INFO.developerMailtoUrl}
-              title={`Kirim email ke ${APP_INFO.developerName} (${APP_INFO.developerEmail})`}
-              aria-label={`Kirim email ke ${APP_INFO.developerName} di ${APP_INFO.developerEmail}`}
-              className="group flex items-center gap-1.5 text-xs font-medium bg-white hover:bg-[#046D38]/[0.06] px-3 py-1.5 rounded-xl border transition-all self-start sm:self-center shrink-0 active:scale-[0.98]"
-              style={{
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              <Mail className="w-3.5 h-3.5 text-[#046D38] shrink-0 transition-transform group-hover:scale-110" />
-              <span
-                itemProp="email"
-                content={APP_INFO.developerEmail}
-                className="truncate group-hover:text-[#046D38] transition-colors"
-              >
-                {APP_INFO.developerContact}
-              </span>
-            </a>
-          </div>
-
-          <p
-            itemProp="description"
-            className="text-fluid-xs leading-relaxed"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            {APP_INFO.developerBio}
-          </p>
-
-          {/* Core Expertise & Agency Specializations */}
-          <div className="pt-0.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {APP_INFO.developerSkills.map((skill) => (
-              <span
-                key={skill}
-                itemProp="knowsAbout"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border text-[11px] sm:text-xs font-semibold"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                <Sparkles className="w-3 h-3 text-[#FBC647] fill-[#FBC647] shrink-0" />
-                <span>{skill}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Agency & Data Source Details Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Agency Profile */}
-          <div
-            itemProp="publisher"
-            itemScope
-            itemType="https://schema.org/Organization"
-            className="p-3.5 rounded-2xl bg-[#F7F8F5] space-y-1 min-w-0"
-          >
-            <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
-              <Building2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Agensi Digital & Teknologi</span>
-            </div>
-            <p
-              itemProp="name"
-              className="text-xs sm:text-sm font-bold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {APP_INFO.agencyName}
-            </p>
-            <p
-              itemProp="description"
-              className="text-fluid-xs leading-snug"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {APP_INFO.agencyTagline} — Dipimpin oleh <strong>{APP_INFO.developerName}</strong>.
-            </p>
-          </div>
-
-          {/* API & Mushaf Source Info */}
-          <div className="p-3.5 rounded-2xl bg-[#F7F8F5] space-y-1 min-w-0">
-            <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
-              <Globe className="w-3.5 h-3.5 shrink-0" />
-              <span>Sumber Data Mushaf & API</span>
-            </div>
-            <p className="text-xs sm:text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
-              {APP_INFO.dataSourceName}
-            </p>
-            <p className="text-fluid-xs leading-snug" style={{ color: 'var(--color-text-secondary)' }}>
-              {APP_INFO.dataSourceDetail}
-            </p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
+
 

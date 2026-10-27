@@ -3,7 +3,6 @@ import {
   ArrowRight,
   ArrowUpDown,
   BookOpen,
-  Bookmark,
   Layers,
   Pause,
   Play,
@@ -38,13 +37,13 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
   error,
   playback,
   initialMode = 'SURAH',
-  bookmarksCount = 0,
-  notesCount = 0,
+  bookmarksCount: _bookmarksCount,
+  notesCount: _notesCount,
   onRetry,
   onSelectSurah,
   onPlayFullSurah,
-  onOpenSearch,
-  onOpenBookmarks,
+  onOpenSearch: _onOpenSearch,
+  onOpenBookmarks: _onOpenBookmarks,
 }) => {
   const [directoryMode, setDirectoryMode] = useState<'SURAH' | 'JUZ'>(initialMode);
   const [filterText, setFilterText] = useState('');
@@ -110,7 +109,7 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
 
   return (
     <div className="container-app py-3.5 sm:py-6 space-y-3.5 sm:space-y-5">
-      {/* Header & Mode Switcher (114 Surat, 30 Juz, Pencarian Ayat, Penanda & Catatan) */}
+      {/* Header & Mode Switcher (114 Surat & 30 Juz) */}
       <div className="card-surface space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="min-w-0">
@@ -125,9 +124,9 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
             {/* Primary Segmented Switcher: 114 Surat vs 30 Juz */}
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-[#F0F3EE] flex-1 sm:flex-initial">
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-[#F0F3EE]">
               <button
                 type="button"
                 onClick={() => setDirectoryMode('SURAH')}
@@ -153,29 +152,6 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
                 <span>30 Juz</span>
               </button>
             </div>
-
-            {/* Sub-features inside Al-Qur'an: Pencarian Ayat & Penanda/Catatan */}
-            {onOpenSearch && (
-              <button
-                type="button"
-                onClick={() => onOpenSearch(filterText.trim() || undefined)}
-                className="min-h-[36px] px-3.5 py-1.5 rounded-full border border-[#E3E9E3] bg-[#F7F8F5] hover:border-[#046D38] text-xs font-semibold text-[#24352B] flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Search className="w-3.5 h-3.5 text-[#046D38]" />
-                <span>Cari Ayat</span>
-              </button>
-            )}
-
-            {onOpenBookmarks && (
-              <button
-                type="button"
-                onClick={onOpenBookmarks}
-                className="min-h-[36px] px-3.5 py-1.5 rounded-full border border-[#E3E9E3] bg-[#F7F8F5] hover:border-[#046D38] text-xs font-semibold text-[#24352B] flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Bookmark className="w-3.5 h-3.5 text-[#046D38]" />
-                <span>Penanda ({bookmarksCount + notesCount})</span>
-              </button>
-            )}
           </div>
         </div>
 

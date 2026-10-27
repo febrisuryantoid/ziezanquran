@@ -258,47 +258,17 @@ export const MoreView: React.FC<MoreViewProps> = ({
           </button>
         </div>
       </section>
-
-      {/* Ringkasan Status Lokasi & Navigasi Cepat */}
-      <div className="card-surface flex flex-wrap items-center justify-between gap-3 text-xs text-[#68756C]">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-[#046D38] shrink-0" />
-          <span>Wilayah Aktif Jadwal Salat: </span>
-          <strong className="text-[#24352B]">
-            {savedLocation.kabkota}, {savedLocation.provinsi}
-          </strong>
-        </div>
-        <button
-          type="button"
-          onClick={() => onSelectTab('shalat')}
-          className="font-semibold text-[#046D38] hover:underline cursor-pointer"
-        >
-          Atur Lokasi &amp; Pengingat Salat →
-        </button>
-      </div>
     </div>
   );
 };
 
 interface AboutViewProps {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
-export const AboutView: React.FC<AboutViewProps> = ({ onBack }) => {
+export const AboutView: React.FC<AboutViewProps> = () => {
   return (
     <div className="container-app py-4 sm:py-6 space-y-5">
-      {/* Top Back Bar */}
-      <div>
-        <button
-          type="button"
-          onClick={onBack}
-          className="min-h-[40px] px-3.5 py-1.5 rounded-xl border border-[#E3E9E3] bg-white hover:border-[#046D38] text-xs font-semibold text-[#24352B] inline-flex items-center gap-2 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4 text-[#046D38]" />
-          <span>Kembali ke Menu Lainnya</span>
-        </button>
-      </div>
-
       {/* Brand Identity Card */}
       <section className="rounded-2xl border border-[#E3E9E3] bg-white p-5 sm:p-6 space-y-4">
         <div className="flex items-start gap-4">
