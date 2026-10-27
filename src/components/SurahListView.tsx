@@ -284,14 +284,7 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
                 style={{ borderColor: 'var(--color-border)' }}
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center font-mono-num text-xs font-bold shrink-0 border group-hover:bg-[#046D38] group-hover:text-white group-hover:border-[#046D38] transition-colors"
-                    style={{
-                      backgroundColor: '#F7F8F5',
-                      borderColor: 'var(--color-border)',
-                      color: 'var(--color-primary)',
-                    }}
-                  >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-mono-num text-xs font-bold shrink-0 border border-[#E3E9E3] bg-[#F7F8F5] text-[#046D38] group-hover:bg-[#046D38] group-hover:text-white group-hover:border-[#046D38] transition-colors">
                     {item.juz}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -366,12 +359,11 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
                   className="flex items-center gap-3 text-left min-w-0 flex-1 cursor-pointer"
                 >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center font-mono-num text-xs font-bold shrink-0 border group-hover:bg-[#046D38] group-hover:text-white group-hover:border-[#046D38] transition-colors"
-                    style={{
-                      backgroundColor: isPlayingThis ? 'var(--color-primary)' : '#F7F8F5',
-                      borderColor: isPlayingThis ? 'var(--color-primary)' : 'var(--color-border)',
-                      color: isPlayingThis ? '#FFFFFF' : 'var(--color-primary)',
-                    }}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-mono-num text-xs font-bold shrink-0 border transition-colors ${
+                      isPlayingThis
+                        ? 'bg-[#046D38] text-white border-[#046D38]'
+                        : 'bg-[#F7F8F5] text-[#046D38] border-[#E3E9E3] group-hover:bg-[#046D38] group-hover:text-white group-hover:border-[#046D38]'
+                    }`}
                   >
                     {surah.nomor}
                   </div>

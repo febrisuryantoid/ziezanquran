@@ -250,14 +250,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={install}
                 aria-label="Instal Aplikasi Ziezan Quran"
                 title="Instal Aplikasi Ziezan Quran"
-                className="min-h-[34px] sm:min-h-[38px] px-2 min-[360px]:px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
+                className="min-h-[34px] sm:min-h-[38px] px-2.5 min-[360px]:px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
                 style={{
                   backgroundColor: 'var(--color-gold)',
                   color: '#1D2B22',
                 }}
               >
-                <Download className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 shrink-0" />
-                <span className="hidden md:inline">Instal</span>
+                <Download className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 shrink-0 text-[#1D2B22]" />
+                <span>Instal App</span>
               </button>
             )}
 
@@ -267,14 +267,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setShowIOSModal(true)}
                 aria-label="Panduan Instal Aplikasi di iOS"
                 title="Panduan Instal Aplikasi di iOS"
-                className="min-h-[34px] sm:min-h-[38px] px-2 min-[360px]:px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
+                className="min-h-[34px] sm:min-h-[38px] px-2.5 min-[360px]:px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
                 style={{
                   backgroundColor: 'var(--color-gold)',
                   color: '#1D2B22',
                 }}
               >
-                <Download className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 shrink-0" />
-                <span className="hidden md:inline">Instal</span>
+                <Download className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 shrink-0 text-[#1D2B22]" />
+                <span>Instal App</span>
               </button>
             )}
           </div>

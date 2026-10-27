@@ -311,16 +311,11 @@ export const SearchView: React.FC<SearchViewProps> = ({
                 match.type === 'surah' ? (
                   <div
                     key={`surah-${match.surahNomor}-${idx}`}
-                    className="card-surface !p-3.5 sm:!p-4 flex items-center justify-between gap-3 hover:border-[#046D38] transition-colors min-w-0"
+                    className="card-surface !p-3.5 sm:!p-4 flex items-center justify-between gap-3 hover:border-[#046D38] transition-colors min-w-0 group cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center font-mono-num text-xs font-bold border shrink-0"
-                        style={{
-                          backgroundColor: '#F7F8F5',
-                          borderColor: 'var(--color-border)',
-                          color: 'var(--color-primary)',
-                        }}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center font-mono-num text-xs font-bold shrink-0 border border-[#E3E9E3] bg-[#F7F8F5] text-[#046D38] group-hover:bg-[#046D38] group-hover:text-white group-hover:border-[#046D38] transition-colors"
                       >
                         {match.surahNomor}
                       </div>

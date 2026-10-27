@@ -4,9 +4,11 @@ import {
   Bell,
   Bookmark,
   Calendar,
+  CheckCircle2,
   ChevronRight,
   Clock,
   Compass,
+  Download,
   ExternalLink,
   Info,
   Mail,
@@ -14,9 +16,11 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Smartphone,
   Volume2,
 } from 'lucide-react';
 import { APP_CONFIG, APP_INFO, BRAND_LOGO_PATH, SITE_URL } from '../config/brand';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 import { mabimsHijriApi } from '../services/islamicApi';
 import { storageService } from '../services/storageService';
 import { ActiveTab } from '../types/quran';
@@ -37,6 +41,8 @@ export const MoreView: React.FC<MoreViewProps> = ({
   const [hijriLabel, setHijriLabel] = useState<string>('Kalender MABIMS Kemenag RI & Hari Besar');
   const savedLocation = storageService.getShalatLocation();
   const shalatReminders = storageService.getShalatReminders();
+  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const [showIOSModal, setShowIOSModal] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -235,6 +241,82 @@ export const MoreView: React.FC<MoreViewProps> = ({
             <ChevronRight className="w-5 h-5 text-[#68756C] group-hover:text-[#046D38] shrink-0" />
           </button>
 
+          {/* Standalone PWA App Install Item */}
+          {isInstalled ? (
+            <div className="w-full min-h-[64px] p-4 flex items-center justify-between gap-3.5 bg-[#EDF5F0]">
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[#046D38] text-[#FBC647] flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm sm:text-base font-bold text-[#035328]">
+                      Aplikasi Standalone Terinstal
+                    </p>
+                    <span className="px-2 py-0.5 rounded bg-[#035328] text-white text-[10px] font-bold">
+                      PWA
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#046D38] truncate mt-0.5">
+                    Berjalan penuh sebagai aplikasi native perangkat Anda
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : isInstallable ? (
+            <button
+              type="button"
+              onClick={install}
+              className="w-full min-h-[64px] p-4 flex items-center justify-between gap-3.5 text-left bg-[#FAFDFB] hover:bg-[#EDF5F0] transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[#046D38] text-[#FBC647] flex items-center justify-center shrink-0 shadow-xs">
+                  <Download className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm sm:text-base font-bold text-[#035328] group-hover:underline">
+                      Instal Aplikasi Standalone
+                    </p>
+                    <span className="px-2 py-0.5 rounded bg-[#FBC647] text-[#24352B] text-[10px] font-bold">
+                      Rekomendasi
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#68756C] truncate mt-0.5">
+                    Instal Ziezan Quran ke layar utama &amp; nikmati aplikasi terpisah dari browser
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#046D38] shrink-0" />
+            </button>
+          ) : isIOS ? (
+            <button
+              type="button"
+              onClick={() => setShowIOSModal(true)}
+              className="w-full min-h-[64px] p-4 flex items-center justify-between gap-3.5 text-left bg-[#FAFDFB] hover:bg-[#EDF5F0] transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[#046D38] text-[#FBC647] flex items-center justify-center shrink-0 shadow-xs">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm sm:text-base font-bold text-[#035328] group-hover:underline">
+                      Instal di iPhone / iPad
+                    </p>
+                    <span className="px-2 py-0.5 rounded bg-[#FBC647] text-[#24352B] text-[10px] font-bold">
+                      iOS Safari
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#68756C] truncate mt-0.5">
+                    Panduan 2-langkah tambah ke Layar Utama
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#046D38] shrink-0" />
+            </button>
+          ) : null}
+
           {/* Tentang Ziezan Quran */}
           <button
             type="button"
@@ -258,6 +340,56 @@ export const MoreView: React.FC<MoreViewProps> = ({
           </button>
         </div>
       </section>
+
+      {/* iOS Modal Guide */}
+      {showIOSModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 space-y-4 shadow-xl border border-[#035328]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#035328] text-[#FBC647] flex items-center justify-center shrink-0">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-[#24352B]">
+                  Instal di iOS (iPhone / iPad)
+                </h3>
+                <p className="text-xs text-[#68756C]">Aplikasi Standalone Tanpa Browser</p>
+              </div>
+            </div>
+
+            <ol className="space-y-2.5 text-xs text-[#24352B] leading-relaxed">
+              <li className="p-2.5 rounded-xl bg-[#F7F8F5] border border-[#E3E9E3] flex items-start gap-2">
+                <span className="font-bold text-[#046D38] bg-white w-5 h-5 rounded-full flex items-center justify-center border text-[11px] shrink-0">
+                  1
+                </span>
+                <span>
+                  Ketuk tombol <strong>Bagikan (Share)</strong> di bilah bawah Safari peramban Anda.
+                </span>
+              </li>
+              <li className="p-2.5 rounded-xl bg-[#F7F8F5] border border-[#E3E9E3] flex items-start gap-2">
+                <span className="font-bold text-[#046D38] bg-white w-5 h-5 rounded-full flex items-center justify-center border text-[11px] shrink-0">
+                  2
+                </span>
+                <span>
+                  Pilih menu <strong>Tambah ke Layar Utama (Add to Home Screen)</strong>.
+                </span>
+              </li>
+            </ol>
+
+            <button
+              type="button"
+              onClick={() => setShowIOSModal(false)}
+              className="w-full min-h-[42px] py-2 px-4 rounded-xl bg-[#035328] text-white text-xs font-bold hover:bg-[#046D38] transition-colors cursor-pointer"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -802,8 +802,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               >
                 <div className="flex items-center justify-between gap-2 min-w-0">
                   <span
-                    className="w-7 h-7 rounded-lg bg-[#F7F8F5] group-hover:bg-[#046D38] group-hover:text-white flex items-center justify-center text-[11px] font-mono-num font-bold shrink-0 transition-colors"
-                    style={{ color: 'var(--color-primary)' }}
+                    className="w-7 h-7 rounded-lg bg-[#F7F8F5] text-[#046D38] border border-[#E3E9E3] group-hover:bg-[#046D38] group-hover:text-white group-hover:border-[#046D38] flex items-center justify-center text-[11px] font-mono-num font-bold shrink-0 transition-colors"
                   >
                     {String(feat.nomor).padStart(2, '0')}
                   </span>
