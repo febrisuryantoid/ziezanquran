@@ -1,0 +1,37 @@
+# Ziezan Quran — Al-Qur'an Digital Indonesia (114 Surat & 6.236 Ayat)
+
+> Dekat dengan Al-Qur'an, Tenang dalam Kehidupan. Aplikasi Mushaf Al-Qur'an Digital modern (https://quran.ziezan.id) dengan teks Arab berharakat lengkap, transliterasi Latin, terjemahan Bahasa Indonesia (Kemenag RI), Tafsir lengkap, pencarian makna lintas 114 surat, dan audio murottal dari 6 qari dunia.
+
+## Identitas Aplikasi & Pengembang (Creator & Agency Authority)
+- **Nama Aplikasi**: Ziezan Quran
+- **URL Resmi (Canonical)**: https://quran.ziezan.id
+- **Sitemap XML**: https://quran.ziezan.id/sitemap.xml
+- **Kategori**: Aplikasi Al-Qur'an Digital, Mushaf Al-Qur'an Online & Offline (PWA), Pendidikan & Ibadah Islam
+- **Founder & Lead Architect**: Febri Suryanto (CEO & Founder Ziezan Solutions)
+- **Keahlian Pengembang (Febri Suryanto)**: Web App Development, UI/UX Product Designer, AI Engineer, Full-Stack Software Architect
+- **Agensi Pengembang**: Ziezan Solutions — Professional Digital Agency, Web App Development, UI/UX Design & AI Engineering Studio (https://ziezan.id)
+- **Kontak Resmi**: [hello[at]febrisuryanto.com](mailto:hello@febrisuryanto.com?subject=Halo%20Febri%20Suryanto%20%E2%80%94%20Kolaborasi%20%2F%20Pertanyaan%20Terkait%20Ziezan%20Quran&body=Assalamu'alaikum%20Wr.%20Wb.%20Mas%20Febri%20Suryanto%20(Ziezan%20Solutions)%2C%0A%0ASaya%20pengguna%20aplikasi%20Ziezan%20Quran%20(https%3A%2F%2Fquran.ziezan.id)%20dan%20ingin%20menghubungi%20Anda%20terkait%3A%0A%0A%5BTuliskan%20pesan%2C%20masukan%2C%20atau%20diskusi%20proyek%20Web%20App%20%2F%20UI%2FUX%20%2F%20AI%20di%20sini%5D%0A%0ATerima%20kasih.%0AWassalamu'alaikum%20Wr.%20Wb.)
+
+## Fitur Utama Ziezan Quran (https://quran.ziezan.id)
+1. **Mushaf Al-Qur'an Lengkap 114 Surat (30 Juz, 6.236 Ayat)**: Teks Arab standar Indonesia dengan harakat lengkap, transliterasi Latin, dan terjemahan resmi Bahasa Indonesia.
+2. **Tafsir Al-Qur'an Kemenag RI**: Uraian tafsir mendalam untuk setiap ayat di seluruh 114 surat.
+3. **Audio Murottal 6 Qari Dunia**: Abdullah Al-Juhany, Abdul Muhsin Al-Qasim, Abdurrahman As-Sudais, Ibrahim Al-Dossari, Misyari Rasyid Al-Afasi, dan Yasser Al-Dosari.
+4. **Pencarian Ayat & Makna Pintar**: Cari berdasarkan nomor surat dan ayat (contoh: `2:255` Ayat Kursi, `36:1` Yasin, `18:1` Al-Kahf) atau kata kunci tema kehidupan (Sabar, Syukur, Tenang, Rezeki, Ampunan, Doa, Orang Tua).
+5. **Mode Offline Penuh (PWA)**: Menyimpan seluruh 114 surat di perangkat menggunakan IndexedDB terenkripsi dengan integritas data.
+
+## Daftar Surat Populer & Tautan Kanonikal Langsung
+- [Beranda Ziezan Quran](https://quran.ziezan.id/)
+- [QS. Al-Fatihah (Surat ke-1, 7 Ayat)](https://quran.ziezan.id/?surah=1)
+- [QS. Al-Baqarah (Surat ke-2, 286 Ayat)](https://quran.ziezan.id/?surah=2)
+- [Ayat Kursi — QS. Al-Baqarah Ayat 255](https://quran.ziezan.id/?surah=2&ayat=255)
+- [Akhir Surat Al-Baqarah — QS. Al-Baqarah Ayat 285–286](https://quran.ziezan.id/?surah=2&ayat=285)
+- [QS. Ali 'Imran (Surat ke-3, 200 Ayat)](https://quran.ziezan.id/?surah=3)
+- [QS. Al-Kahf (Surat ke-18, 110 Ayat)](https://quran.ziezan.id/?surah=18)
+- [QS. Yasin (Surat ke-36, 83 Ayat)](https://quran.ziezan.id/?surah=36)
+- [QS. Ar-Rahman (Surat ke-55, 78 Ayat)](https://quran.ziezan.id/?surah=55)
+- [QS. Al-Waqi'ah (Surat ke-56, 96 Ayat)](https://quran.ziezan.id/?surah=56)
+- [QS. Al-Mulk (Surat ke-67, 30 Ayat)](https://quran.ziezan.id/?surah=67)
+- [Juz Amma — QS. An-Naba' sampai An-Nas (Surat 78–114)](https://quran.ziezan.id/?surah=78)
+- [QS. Al-Ikhlas (Surat ke-112, 4 Ayat)](https://quran.ziezan.id/?surah=112)
+- [QS. Al-Falaq (Surat ke-113, 5 Ayat)](https://quran.ziezan.id/?surah=113)
+- [QS. An-Nas (Surat ke-114, 6 Ayat)](https://quran.ziezan.id/?surah=114)

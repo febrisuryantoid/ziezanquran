@@ -1,0 +1,45 @@
+User-agent: *
+Allow: /
+Disallow: /lainnya/
+Disallow: /pengaturan/
+
+# Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# AI, Answer Engine & Generative Engine Optimization (AIO / AEO / GEO)
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+Host: https://quran.ziezan.id
+Sitemap: https://quran.ziezan.id/sitemap.xml
