@@ -326,33 +326,33 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             {nextPrayerHome && todayShalatRow ? (
               <>
-                <div className="rounded-2xl bg-[#F7F8F5] border border-[#E3E9E3] p-3.5 sm:p-4 flex items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-medium text-[#68756C]">
+                <div className="rounded-2xl bg-[#F7F8F5] border border-[#E3E9E3] p-3 sm:p-4 flex items-center justify-between gap-2.5 min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] min-[360px]:text-[11px] font-medium text-[#68756C] truncate block">
                       Waktu Salat Berikutnya {nextPrayerHome.isTomorrow ? '(Besok)' : '(Hari Ini)'}
                     </span>
-                    <div className="flex items-baseline gap-2.5 mt-0.5">
-                      <span className="font-display text-xl sm:text-2xl font-bold text-[#24352B]">
+                    <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2.5 mt-0.5 min-w-0">
+                      <span className="font-display text-lg min-[360px]:text-xl sm:text-2xl font-bold text-[#24352B] truncate">
                         {nextPrayerHome.label}
                       </span>
-                      <span className="font-mono-num text-base sm:text-lg font-bold text-[#046D38]">
+                      <span className="font-mono-num text-sm min-[360px]:text-base sm:text-lg font-bold text-[#046D38]">
                         {nextPrayerHome.timeStr}
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#68756C] block">
+                  <div className="text-right shrink-0">
+                    <span className="text-[9px] min-[360px]:text-[10px] font-semibold uppercase tracking-wider text-[#68756C] block">
                       Hitung Mundur
                     </span>
-                    <span className="inline-block mt-0.5 rounded-lg bg-[#035328] px-2.5 py-1 font-mono-num text-sm sm:text-base font-bold text-[#FBC647]">
+                    <span className="inline-block mt-0.5 rounded-lg bg-[#035328] px-2 min-[360px]:px-2.5 py-0.5 min-[360px]:py-1 font-mono-num text-xs min-[360px]:text-sm sm:text-base font-bold text-[#FBC647]">
                       -{formatCountdown(nextPrayerHome.remainingSeconds)}
                     </span>
                   </div>
                 </div>
 
                 {/* Strip 5 Waktu Salat Wajib Hari Ini */}
-                <div className="grid grid-cols-5 gap-1.5 text-center">
+                <div className="grid grid-cols-5 gap-1 min-[360px]:gap-1.5 text-center">
                   {(
                     [
                       { key: 'subuh', label: 'Subuh', time: todayShalatRow.subuh },
@@ -367,20 +367,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     return (
                       <div
                         key={item.key}
-                        className={`rounded-xl py-2 px-1 border transition-colors ${
+                        className={`rounded-xl py-1.5 min-[360px]:py-2 px-0.5 min-[360px]:px-1 border transition-colors min-w-0 ${
                           isNext
                             ? 'bg-[#046D38] border-[#046D38] text-white'
                             : 'bg-[#F7F8F5] border-[#E3E9E3] text-[#24352B]'
                         }`}
                       >
                         <p
-                          className={`text-[10px] font-semibold ${
+                          className={`text-[9px] min-[360px]:text-[10px] font-semibold truncate ${
                             isNext ? 'text-[#FBC647]' : 'text-[#68756C]'
                           }`}
                         >
                           {item.label}
                         </p>
-                        <p className="font-mono-num text-xs font-bold mt-0.5">{item.time}</p>
+                        <p className="font-mono-num text-[10px] min-[360px]:text-xs font-bold mt-0.5 truncate">
+                          {item.time}
+                        </p>
                       </div>
                     );
                   })}
@@ -437,7 +439,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <div className="flex items-start justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] text-white/75">Bacaan terakhir tersimpan</p>
-                    <h2 className="font-display text-xl sm:text-2xl font-bold mt-0.5 truncate text-white">
+                    <h2 className="font-display text-lg min-[360px]:text-xl sm:text-2xl font-bold mt-0.5 truncate text-white">
                       QS. {lastRead.surahNamaLatin} ({lastRead.surahNomor})
                     </h2>
                     <p className="text-xs text-white/85 mt-0.5 truncate">
@@ -445,7 +447,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     </p>
                   </div>
                   <span
-                    className="font-arabic-amiri text-2xl sm:text-3xl font-bold shrink-0"
+                    className="font-arabic-amiri text-xl min-[360px]:text-2xl sm:text-3xl font-bold shrink-0"
                     style={{ color: 'var(--color-gold)' }}
                   >
                     {lastRead.surahNamaArab}

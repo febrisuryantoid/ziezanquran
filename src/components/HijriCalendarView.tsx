@@ -468,11 +468,11 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
           ) : (
             <>
               {/* Weekday Header */}
-              <div className="mb-2 grid grid-cols-7 gap-1.5 text-center sm:gap-2">
+              <div className="mb-2 grid grid-cols-7 gap-1 sm:gap-2 text-center">
                 {WEEKDAYS_ID.map((dayName, idx) => (
                   <div
                     key={dayName}
-                    className={`rounded-lg py-2 text-[11px] font-bold uppercase tracking-wider ${
+                    className={`rounded-lg py-1.5 sm:py-2 text-[9px] min-[360px]:text-[11px] font-bold uppercase tracking-normal min-[360px]:tracking-wider truncate ${
                       idx === 5
                         ? 'bg-[#035328] text-[#FBC647]'
                         : 'bg-[#F7F8F5] text-[#68756C]'
@@ -484,11 +484,11 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
               </div>
 
               {/* Calendar Grid */}
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2">
                 {Array.from({ length: leadingEmptyDays }).map((_, i) => (
                   <div
                     key={`empty-${i}`}
-                    className="min-h-[72px] rounded-xl border border-dashed border-[#E3E9E3]/60 bg-[#F7F8F5]/40 sm:min-h-[88px]"
+                    className="min-h-[58px] min-[360px]:min-h-[68px] sm:min-h-[88px] rounded-xl border border-dashed border-[#E3E9E3]/60 bg-[#F7F8F5]/40"
                   />
                 ))}
 
@@ -503,7 +503,7 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
                   return (
                     <div
                       key={item.hijri}
-                      className={`flex min-h-[72px] flex-col justify-between rounded-xl border p-2 transition-colors sm:min-h-[88px] sm:p-2.5 ${
+                      className={`flex min-h-[58px] min-[360px]:min-h-[68px] sm:min-h-[88px] flex-col justify-between rounded-xl border p-1 min-[360px]:p-1.5 sm:p-2.5 transition-colors min-w-0 ${
                         isToday
                           ? 'border-[#035328] bg-[#035328] text-white'
                           : hasEvent
@@ -511,17 +511,18 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
                             : 'border-[#E3E9E3] bg-white text-[#24352B] hover:border-[#046D38]'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-1">
+                      <div className="flex items-start justify-between gap-0.5 min-w-0">
                         <span
-                          className={`font-serif text-base font-bold sm:text-xl ${
+                          className={`font-serif text-sm min-[360px]:text-base sm:text-xl font-bold ${
                             isToday ? 'text-[#FBC647]' : 'text-[#24352B]'
                           }`}
                         >
                           {hijriDayNum}
                         </span>
                         {isToday && (
-                          <span className="rounded bg-[#FBC647] px-1.5 py-0.5 text-[9px] font-bold text-[#24352B]">
-                            Hari Ini
+                          <span className="rounded bg-[#FBC647] px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-[#24352B] whitespace-nowrap">
+                            <span className="hidden sm:inline">Hari Ini</span>
+                            <span className="sm:hidden">Ini</span>
                           </span>
                         )}
                       </div>
@@ -529,7 +530,7 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
                       <div>
                         {hasEvent && (
                           <div
-                            className={`mb-1 truncate rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                            className={`mb-0.5 sm:mb-1 truncate rounded px-1 py-0.2 text-[8.5px] min-[360px]:text-[10px] font-bold ${
                               isToday
                                 ? 'bg-[#046D38] text-[#FBC647]'
                                 : 'bg-[#035328] text-white'
@@ -540,11 +541,12 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
                           </div>
                         )}
                         <div
-                          className={`font-mono text-[10px] sm:text-[11px] ${
+                          className={`font-mono text-[8.5px] min-[360px]:text-[10px] sm:text-[11px] truncate ${
                             isToday ? 'text-white/85' : 'text-[#68756C]'
                           }`}
                         >
-                          {item.gregorian}
+                          <span className="sm:hidden">{parseInt(item.gregorian.split('-')[2], 10)} M</span>
+                          <span className="hidden sm:inline">{item.gregorian}</span>
                         </div>
                       </div>
                     </div>

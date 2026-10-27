@@ -364,20 +364,20 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
           paddingTop: 'var(--safe-top)',
         }}
       >
-        <div className="container-reader h-14 sm:h-15 flex items-center justify-between gap-1.5 sm:gap-3 min-w-0">
+        <div className="container-reader h-13 sm:h-15 flex items-center justify-between gap-1 sm:gap-2.5 min-w-0">
           {/* Left: Back Icon Button Only */}
           <button
             type="button"
             onClick={onBackToList}
             aria-label="Kembali ke Daftar Surat"
             title="Kembali ke Daftar Surat"
-            className="w-10 h-10 rounded-full border bg-[#F7F8F5] hover:bg-[#EDF5F0] hover:border-[#046D38]/40 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+            className="w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-full border bg-[#F7F8F5] hover:bg-[#EDF5F0] hover:border-[#046D38]/40 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
             style={{
               borderColor: 'var(--color-border)',
               color: 'var(--color-text-primary)',
             }}
           >
-            <ArrowLeft className="w-[18px] h-[18px]" />
+            <ArrowLeft className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
           </button>
 
           {/* Center: Compact Surah & Ayat Jump Selectors */}
@@ -386,7 +386,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
               value={surah.nomor}
               onChange={(e) => onSelectSurah(Number(e.target.value), 1)}
               aria-label="Pilih Surat"
-              className="h-9 sm:h-10 min-w-0 flex-1 px-2.5 sm:px-3 rounded-full border text-xs sm:text-sm font-semibold bg-[#F7F8F5] truncate focus:outline-none cursor-pointer"
+              className="h-8.5 sm:h-10 min-w-0 flex-1 px-2 sm:px-3 rounded-full border text-[11px] sm:text-sm font-semibold bg-[#F7F8F5] truncate focus:outline-none cursor-pointer"
               style={{
                 borderColor: 'var(--color-border)',
                 color: 'var(--color-text-primary)',
@@ -406,7 +406,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
                 if (val) handleJumpToAyat(val);
               }}
               aria-label="Lompat ke Ayat"
-              className="h-9 sm:h-10 w-[84px] sm:w-[96px] shrink-0 px-2.5 rounded-full border text-xs font-mono-num font-semibold bg-[#F7F8F5] focus:outline-none cursor-pointer"
+              className="h-8.5 sm:h-10 w-[64px] min-[360px]:w-[76px] sm:w-[96px] shrink-0 px-1 min-[360px]:px-2 rounded-full border text-[10px] min-[360px]:text-xs font-mono-num font-semibold bg-[#F7F8F5] focus:outline-none cursor-pointer"
               style={{
                 borderColor: 'var(--color-border)',
                 color: 'var(--color-primary)',
@@ -414,13 +414,13 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
             >
               {surah.ayat.map((a) => (
                 <option key={a.nomorAyat} value={a.nomorAyat}>
-                  Ayat {a.nomorAyat}
+                  {a.nomorAyat}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Right: Relevant Icon-Only Actions (Zero Text Clutter) */}
+          {/* Right: Relevant Icon-Only Actions (Fluid & Overlap-Proof) */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {/* Search in Surah Toggle Icon */}
             <button
@@ -433,16 +433,16 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
               }}
               aria-label="Cari ayat di dalam surat ini"
               title="Cari di dalam surat"
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+              className={`w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
                 showSearchBar || inSurahQuery
                   ? 'bg-[#046D38] text-white border-[#046D38]'
                   : 'bg-[#F7F8F5] text-[#68756C] hover:text-[#24352B] border-[#E3E9E3]'
               }`}
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            {/* Toggle Latin Icon */}
+            {/* Toggle Latin Icon (Hidden on screens < 440px to prevent overcrowding) */}
             <button
               type="button"
               onClick={() =>
@@ -458,16 +458,16 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
                   ? 'Transliterasi Latin: Aktif'
                   : 'Transliterasi Latin: Nonaktif'
               }
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+              className={`hidden min-[440px]:flex w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-full border items-center justify-center transition-colors cursor-pointer ${
                 preferences.showLatin
                   ? 'bg-[#046D38] text-white border-[#046D38]'
                   : 'bg-[#F7F8F5] text-[#68756C] hover:text-[#24352B] border-[#E3E9E3]'
               }`}
             >
-              <Languages className="w-4 h-4" />
+              <Languages className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            {/* Toggle Translation Icon */}
+            {/* Toggle Translation Icon (Hidden on screens < 440px to prevent overcrowding) */}
             <button
               type="button"
               onClick={() =>
@@ -486,28 +486,28 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
                   ? 'Terjemahan Indonesia: Aktif'
                   : 'Terjemahan Indonesia: Nonaktif'
               }
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+              className={`hidden min-[440px]:flex w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-full border items-center justify-center transition-colors cursor-pointer ${
                 preferences.showTranslation
                   ? 'bg-[#046D38] text-white border-[#046D38]'
                   : 'bg-[#F7F8F5] text-[#68756C] hover:text-[#24352B] border-[#E3E9E3]'
               }`}
             >
-              <Subtitles className="w-4 h-4" />
+              <Subtitles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            {/* Surah Introduction / Info Icon */}
+            {/* Surah Introduction / Info Icon (Hidden on screens < 520px) */}
             <button
               type="button"
               onClick={() => setShowDescription(true)}
               aria-label={`Informasi & Pengantar Surat ${surah.namaLatin}`}
               title="Informasi & Pengantar Surat"
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+              className={`hidden min-[520px]:flex w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-full border items-center justify-center transition-colors cursor-pointer ${
                 showDescription
                   ? 'bg-[#046D38] text-white border-[#046D38]'
                   : 'bg-[#F7F8F5] text-[#68756C] hover:text-[#24352B] border-[#E3E9E3]'
               }`}
             >
-              <Info className="w-4 h-4" />
+              <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             {/* Play / Pause Full Surah Audio Icon */}
@@ -524,7 +524,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
                   ? `Jeda Murottal Surat ${surah.namaLatin}`
                   : `Putar Murottal Surat ${surah.namaLatin}`
               }
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer shadow-2xs"
+              className="w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer shadow-2xs shrink-0"
               style={{
                 backgroundColor: isPlayingFullSurah
                   ? 'var(--color-gold)'
@@ -533,9 +533,9 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
               }}
             >
               {isPlayingFullSurah ? (
-                <Pause className="w-4 h-4 fill-current" />
+                <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
               ) : (
-                <Volume2 className="w-4 h-4" />
+                <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               )}
             </button>
           </div>

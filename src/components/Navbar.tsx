@@ -173,12 +173,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           paddingTop: 'var(--safe-top)',
         }}
       >
-        <div className="container-app h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4 min-w-0">
+        <div className="container-app h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4 min-w-0">
           {/* Left: Brand Logo & Title */}
           <button
             type="button"
             onClick={() => onSelectTab('home')}
-            className="min-h-[44px] flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 focus:outline-none cursor-pointer group"
+            className="min-h-[44px] flex items-center gap-1.5 sm:gap-2.5 text-left whitespace-nowrap shrink-0 focus:outline-none cursor-pointer group"
           >
             {!logoError ? (
               <img
@@ -196,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Z
               </span>
             )}
-            <span className="font-display text-lg sm:text-xl font-bold tracking-tight text-white whitespace-nowrap shrink-0">
+            <span className="font-display text-[15px] min-[360px]:text-lg sm:text-xl font-bold tracking-tight text-white whitespace-nowrap shrink-0">
               {APP_CONFIG.appName}
             </span>
           </button>
@@ -230,16 +230,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Right: Primary Contextual Actions (Continue Reading + Optional PWA Install) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
             <button
               type="button"
               onClick={onContinueReading}
               aria-label={continueLabelFull}
               title={continueLabelFull}
-              className="min-h-[36px] sm:min-h-[38px] px-3 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer border border-[#FBC647]/40 text-white hover:bg-white/10 max-w-[165px] sm:max-w-[220px]"
+              className="min-h-[34px] sm:min-h-[38px] px-2.5 min-[360px]:px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer border border-[#FBC647]/40 text-white hover:bg-white/10 max-w-[125px] min-[360px]:max-w-[165px] sm:max-w-[220px]"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              <BookOpen className="w-3.5 h-3.5 shrink-0 text-[#FBC647]" />
+              <BookOpen className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 shrink-0 text-[#FBC647]" />
               <span className="truncate hidden sm:inline">{continueLabelFull}</span>
               <span className="truncate sm:hidden">{continueLabelShort}</span>
             </button>
@@ -250,13 +250,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={install}
                 aria-label="Instal Aplikasi Ziezan Quran"
                 title="Instal Aplikasi Ziezan Quran"
-                className="min-h-[36px] sm:min-h-[38px] px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
+                className="min-h-[34px] sm:min-h-[38px] px-2 min-[360px]:px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
                 style={{
                   backgroundColor: 'var(--color-gold)',
                   color: '#1D2B22',
                 }}
               >
-                <Download className="w-3.5 h-3.5 shrink-0" />
+                <Download className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 shrink-0" />
                 <span className="hidden md:inline">Instal</span>
               </button>
             )}
@@ -267,13 +267,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setShowIOSModal(true)}
                 aria-label="Panduan Instal Aplikasi di iOS"
                 title="Panduan Instal Aplikasi di iOS"
-                className="min-h-[36px] sm:min-h-[38px] px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
+                className="min-h-[34px] sm:min-h-[38px] px-2 min-[360px]:px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
                 style={{
                   backgroundColor: 'var(--color-gold)',
                   color: '#1D2B22',
                 }}
               >
-                <Download className="w-3.5 h-3.5 shrink-0" />
+                <Download className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 shrink-0" />
                 <span className="hidden md:inline">Instal</span>
               </button>
             )}
@@ -400,7 +400,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="mx-auto max-w-xl grid grid-cols-5 items-stretch px-1">
+      <div className="mx-auto max-w-xl grid grid-cols-5 items-stretch px-0.5 min-[360px]:px-1">
         {MOBILE_BOTTOM_NAV_ITEMS.map((item) => {
           const isActive = item.isActiveMatch(activeTab);
           return (
@@ -410,7 +410,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
               onClick={() => onSelectTab(item.id)}
               aria-label={item.ariaLabel}
               aria-current={isActive ? 'page' : undefined}
-              className={`relative min-h-[56px] min-w-[44px] py-1.5 px-1 flex flex-col items-center justify-center gap-1 transition-colors focus:outline-none cursor-pointer ${
+              className={`relative min-h-[52px] min-[360px]:min-h-[56px] min-w-[40px] py-1 min-[360px]:py-1.5 px-0.5 flex flex-col items-center justify-center gap-0.5 min-[360px]:gap-1 transition-colors focus:outline-none cursor-pointer ${
                 isActive
                   ? 'text-[#046D38]'
                   : 'text-[#68756C] hover:text-[#24352B]'
@@ -419,21 +419,23 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
               {/* Indikator aktif yang halus di bagian atas item */}
               {isActive && (
                 <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] rounded-b-full bg-[#046D38]"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-6 min-[360px]:w-8 h-[3px] rounded-b-full bg-[#046D38]"
                   aria-hidden="true"
                 />
               )}
 
               <span
-                className={`flex items-center justify-center px-3 py-0.5 rounded-xl transition-colors ${
+                className={`flex items-center justify-center px-2 min-[360px]:px-3 py-0.5 rounded-xl transition-colors ${
                   isActive ? 'bg-[#EDF5F0] text-[#046D38]' : 'text-[#68756C]'
                 }`}
               >
-                {item.icon}
+                <span className="scale-90 min-[360px]:scale-100 transition-transform">
+                  {item.icon}
+                </span>
               </span>
 
               <span
-                className={`text-[11px] leading-tight tracking-tight whitespace-nowrap truncate max-w-full ${
+                className={`text-[9.5px] min-[360px]:text-[11px] leading-tight tracking-tight whitespace-nowrap truncate max-w-[56px] min-[360px]:max-w-[64px] text-center ${
                   isActive ? 'font-bold text-[#046D38]' : 'font-medium text-[#68756C]'
                 }`}
               >

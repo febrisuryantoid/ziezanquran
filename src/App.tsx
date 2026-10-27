@@ -1291,32 +1291,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Contextual Back Bar for Sub-Pages of 'Lainnya' (Jadwal Salat, Kalender Hijriah, Pengaturan, Tentang) */}
-      {(activeTab === 'shalat' || activeTab === 'hijri' || activeTab === 'settings' || activeTab === 'about') && (
-        <div className="container-app pt-3.5 sm:pt-4">
-          <button
-            type="button"
-            onClick={() => handleSelectTab('more')}
-            className="min-h-[38px] px-3.5 py-1.5 rounded-xl border border-[#E3E9E3] bg-white hover:border-[#046D38] text-xs font-semibold text-[#24352B] inline-flex items-center gap-2 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4 text-[#046D38]" />
-            <span>Kembali ke Menu Lainnya</span>
-          </button>
-        </div>
-      )}
-
-      {(activeTab === 'search' || activeTab === 'bookmarks') && (
-        <div className="container-app pt-3.5 sm:pt-4">
-          <button
-            type="button"
-            onClick={() => handleSelectTab('surah-list')}
-            className="min-h-[38px] px-3.5 py-1.5 rounded-xl border border-[#E3E9E3] bg-white hover:border-[#046D38] text-xs font-semibold text-[#24352B] inline-flex items-center gap-2 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4 text-[#046D38]" />
-            <span>Kembali ke Daftar Al-Qur&apos;an</span>
-          </button>
-        </div>
-      )}
 
       {/* Main Content Area */}
       <main className="flex-1 min-w-0">

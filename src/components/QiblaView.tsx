@@ -349,10 +349,10 @@ export const QiblaView: React.FC<QiblaViewProps> = ({ onShowToast }) => {
             </p>
 
             {/* Visual SVG Compass */}
-            <div className="relative mx-auto my-2 flex h-72 w-72 items-center justify-center sm:h-80 sm:w-80">
+            <div className="relative mx-auto my-2 flex w-[min(100%,17.5rem)] h-[min(100%,17.5rem)] max-w-full aspect-square items-center justify-center sm:h-80 sm:w-80">
               {/* Top Reference Pointer */}
               <div className="absolute -top-3 z-20 flex flex-col items-center">
-                <div className="rounded bg-[#035328] px-2 py-0.5 text-[10px] font-bold text-white">
+                <div className="rounded bg-[#035328] px-2 py-0.5 text-[9px] min-[360px]:text-[10px] font-bold text-white whitespace-nowrap">
                   {isSensorLive ? 'ARAH PERANGKAT' : 'UTARA SEJATI (0°)'}
                 </div>
                 <div className="h-0 w-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-[#035328]" />

@@ -713,24 +713,24 @@ export const ShalatView: React.FC<ShalatViewProps> = ({
               </div>
 
               {nextPrayer && (
-                <div className="rounded-xl border border-white/15 bg-[#046D38] p-4 sm:min-w-[290px]">
+                <div className="rounded-xl border border-white/15 bg-[#046D38] p-3.5 sm:p-4 sm:min-w-[290px] min-w-0">
                   <div className="flex items-center justify-between text-xs font-medium text-white/85">
-                    <span>
+                    <span className="truncate">
                       Waktu Berikutnya {nextPrayer.isTomorrow ? '(Besok)' : '(Hari Ini)'}
                     </span>
-                    <span className="rounded bg-[#FBC647] px-2 py-0.5 text-[11px] font-bold text-[#24352B]">
+                    <span className="rounded bg-[#FBC647] px-2 py-0.5 text-[11px] font-bold text-[#24352B] shrink-0 ml-2">
                       {nextPrayer.timeStr}
                     </span>
                   </div>
-                  <div className="mt-1.5 flex items-baseline justify-between gap-4">
-                    <span className="font-serif text-2xl font-bold text-white">
+                  <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-2 sm:gap-4 min-w-0">
+                    <span className="font-serif text-xl min-[360px]:text-2xl font-bold text-white truncate">
                       {nextPrayer.label}
                     </span>
-                    <span className="font-mono text-2xl font-bold tracking-wider text-[#FBC647]">
+                    <span className="font-mono text-lg min-[360px]:text-2xl font-bold tracking-wider text-[#FBC647]">
                       -{formatCountdown(nextPrayer.remainingSeconds)}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-white/75">
+                  <p className="mt-1 text-[11px] text-white/75 truncate">
                     Hitung mundur otomatis menuju waktu {nextPrayer.label}.
                   </p>
                 </div>
