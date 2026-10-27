@@ -52,8 +52,8 @@ export const seoService = {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
     const baseUrl = SITE_URL.replace(/\/+$/, '');
-    let pageTitle = `${APP_CONFIG.appName} — Al-Qur'an Digital 114 Surat & Terjemahan | By ${APP_INFO.developerName}`;
-    let pageDesc = `Baca Al-Qur'an Digital 114 Surat (6.236 Ayat) lengkap teks Arab, Latin, terjemahan Kemenag RI, tafsir, dan murottal 6 qari di ${SITE_URL}. Karya ${APP_INFO.developerName} (${APP_INFO.agencyName}).`;
+    let pageTitle: string = APP_CONFIG.appName;
+    let pageDesc = `Baca Al-Qur'an Digital 114 Surat (6.236 Ayat) lengkap teks Arab, Latin, terjemahan Kemenag RI, tafsir, dan murottal 6 qari di ${SITE_URL}.`;
     let canonical = `${baseUrl}/`;
 
     // Robots directive: strictly noindex for /lainnya/ and /pengaturan/
@@ -162,6 +162,9 @@ export const seoService = {
 
     document.title = pageTitle;
     setMetaContent('meta[name="description"]', pageDesc);
+    setMetaContent('meta[property="og:site_name"]', APP_CONFIG.appName);
+    setMetaContent('meta[name="application-name"]', APP_CONFIG.appName);
+    setMetaContent('meta[name="apple-mobile-web-app-title"]', APP_CONFIG.appName);
     setMetaContent('meta[property="og:title"]', pageTitle);
     setMetaContent('meta[property="og:description"]', pageDesc);
     setMetaContent('meta[property="og:url"]', canonical);

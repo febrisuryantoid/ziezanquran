@@ -799,151 +799,195 @@ export const ShalatView: React.FC<ShalatViewProps> = ({
             </div>
           </section>
 
-          {/* Pengaturan Pengingat, Audio Adzan Otomatis & Keterbatasan PWA */}
-          <section className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-12">
-            <div className="rounded-2xl border border-[#E3E9E3] bg-white p-5 lg:col-span-7">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E3E9E3] pb-4">
-                <div>
-                  <h3 className="text-base font-bold text-[#24352B]">
-                    Pengaturan Pengingat &amp; Audio Adzan Otomatis
-                  </h3>
-                  <p className="text-xs text-[#68756C]">
-                    Sinkronisasi zona waktu lokal ({userTimezone}) dengan pemutaran maksimal 1 kali per jadwal.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleToggleRemindersEnabled}
-                    className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
-                      reminders.enabled
-                        ? 'bg-[#035328] text-white hover:bg-[#046D38]'
-                        : 'border border-[#E3E9E3] bg-[#F7F8F5] text-[#24352B] hover:border-[#046D38]'
-                    }`}
-                  >
-                    {reminders.enabled ? (
-                      <>
-                        <Bell className="h-4 w-4 text-[#FBC647]" />
-                        <span>Pengingat Aktif</span>
-                      </>
-                    ) : (
-                      <>
-                        <BellOff className="h-4 w-4 text-[#68756C]" />
-                        <span>Aktifkan Pengingat</span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleToggleAudioEnabled}
-                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
-                      reminders.audioEnabled && reminders.sound !== 'mute'
-                        ? 'border-[#046D38] bg-[#F7F8F5] text-[#035328]'
-                        : 'border-[#E3E9E3] bg-white text-[#68756C] hover:border-[#046D38]'
-                    }`}
-                  >
-                    {reminders.audioEnabled && reminders.sound !== 'mute' ? (
-                      <>
-                        <Volume2 className="h-4 w-4 text-[#046D38]" />
-                        <span>Audio Aktif</span>
-                      </>
-                    ) : (
-                      <>
-                        <VolumeX className="h-4 w-4 text-[#68756C]" />
-                        <span>Audio Nonaktif</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Pilih Waktu yang Diingatkan */}
-              <div className="mt-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#68756C]">
-                  Pilih Waktu Jadwal yang Diaktifkan
+          {/* Pengaturan Pengingat & Audio Adzan Otomatis + Status Pengingat (1 Box Terpadu) */}
+          <section className="mb-6 rounded-2xl border border-[#E3E9E3] bg-white p-5 sm:p-6 space-y-5">
+            {/* Header & Main Toggles */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E3E9E3] pb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-[#24352B]">
+                  Pengaturan Pengingat &amp; Audio Adzan Otomatis
+                </h3>
+                <p className="text-xs text-[#68756C] mt-0.5">
+                  Sinkronisasi zona waktu lokal ({userTimezone}) dengan pemutaran maksimal 1 kali per jadwal.
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {PRAYER_ORDER.map((key) => {
-                    const active = reminders.prayers[key];
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => handleToggleSinglePrayer(key)}
-                        className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
-                          active
-                            ? 'border-[#035328] bg-[#035328] text-white'
-                            : 'border-[#E3E9E3] bg-[#F7F8F5] text-[#68756C] hover:border-[#046D38]'
-                        }`}
-                      >
-                        {active && <Check className="h-3.5 w-3.5 text-[#FBC647]" />}
-                        <span>{PRAYER_LABELS[key].label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
 
-              {/* Pilihan Jenis Pengingat, Waktu Peringatan & Volume */}
-              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="shalat-sound-select"
-                    className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68756C]"
-                  >
-                    Jenis Pengingat Audio
-                  </label>
-                  <select
-                    id="shalat-sound-select"
-                    value={reminders.audioEnabled ? reminders.sound : 'mute'}
-                    onChange={(e) => handleSoundChange(e.target.value as AdhanSoundPreference)}
-                    className="w-full rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-3 py-2.5 text-xs font-semibold text-[#24352B] focus:border-[#046D38] focus:bg-white focus:outline-none"
-                  >
-                    {SOUND_OPTIONS.map((opt) => (
-                      <option key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleRemindersEnabled}
+                  className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                    reminders.enabled
+                      ? 'bg-[#035328] text-white hover:bg-[#046D38]'
+                      : 'border border-[#E3E9E3] bg-[#F7F8F5] text-[#24352B] hover:border-[#046D38]'
+                  }`}
+                >
+                  {reminders.enabled ? (
+                    <>
+                      <Bell className="h-4 w-4 text-[#FBC647]" />
+                      <span>Pengingat Aktif</span>
+                    </>
+                  ) : (
+                    <>
+                      <BellOff className="h-4 w-4 text-[#68756C]" />
+                      <span>Aktifkan Pengingat</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleToggleAudioEnabled}
+                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                    reminders.audioEnabled && reminders.sound !== 'mute'
+                      ? 'border-[#046D38] bg-[#F7F8F5] text-[#035328]'
+                      : 'border-[#E3E9E3] bg-white text-[#68756C] hover:border-[#046D38]'
+                  }`}
+                >
+                  {reminders.audioEnabled && reminders.sound !== 'mute' ? (
+                    <>
+                      <Volume2 className="h-4 w-4 text-[#046D38]" />
+                      <span>Audio Aktif</span>
+                    </>
+                  ) : (
+                    <>
+                      <VolumeX className="h-4 w-4 text-[#68756C]" />
+                      <span>Audio Nonaktif</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Status Pengingat Bar */}
+            <div className="rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] p-3 sm:p-3.5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-lg bg-white border border-[#E3E9E3] p-1.5 text-[#035328]">
+                    <Bell className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-xs font-bold text-[#24352B]">Status Pengingat:</span>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="shalat-lead-select"
-                    className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68756C]"
-                  >
-                    Waktu Pemicu Pengingat
-                  </label>
-                  <select
-                    id="shalat-lead-select"
-                    value={reminders.leadMinutes}
-                    onChange={(e) =>
-                      handleLeadMinutesChange(Number(e.target.value) as 0 | 5 | 10)
-                    }
-                    className="w-full rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-3 py-2.5 text-xs font-semibold text-[#24352B] focus:border-[#046D38] focus:bg-white focus:outline-none"
-                  >
-                    <option value={0}>Tepat saat waktu masuk (0 menit)</option>
-                    <option value={5}>5 menit sebelum waktu masuk</option>
-                    <option value={10}>10 menit sebelum waktu masuk</option>
-                  </select>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[#68756C]">
+                  <div className="flex items-center gap-1.5">
+                    <span>Izin Notifikasi:</span>
+                    <span className="font-semibold text-[#035328]">
+                      {notifPermission === 'granted'
+                        ? 'Aktif'
+                        : notifPermission === 'denied'
+                          ? 'Diblokir'
+                          : 'Belum Aktif'}
+                    </span>
+                  </div>
+                  <span className="hidden sm:inline text-[#E3E9E3]">|</span>
+                  <div className="flex items-center gap-1.5">
+                    <span>Pemicu Audio:</span>
+                    <span className="font-medium text-[#24352B]">1x saat jadwal tiba</span>
+                  </div>
+                  <span className="hidden sm:inline text-[#E3E9E3]">|</span>
+                  <div className="flex items-center gap-1.5">
+                    <span>Murottal:</span>
+                    <span className="font-medium text-[#24352B]">Jeda otomatis</span>
+                  </div>
                 </div>
+
+                {notifPermission !== 'granted' && (
+                  <button
+                    type="button"
+                    onClick={handleRequestNotificationPermission}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#046D38] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#035328] transition-colors cursor-pointer shrink-0"
+                  >
+                    <Bell className="h-3.5 w-3.5 text-[#FBC647]" />
+                    <span>Aktifkan Notifikasi</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Pilih Waktu Jadwal yang Diaktifkan */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#68756C]">
+                Pilih Waktu Jadwal yang Diaktifkan
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {PRAYER_ORDER.map((key) => {
+                  const active = reminders.prayers[key];
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleToggleSinglePrayer(key)}
+                      className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                        active
+                          ? 'border-[#035328] bg-[#035328] text-white'
+                          : 'border-[#E3E9E3] bg-[#F7F8F5] text-[#68756C] hover:border-[#046D38]'
+                      }`}
+                    >
+                      {active && <Check className="h-3.5 w-3.5 text-[#FBC647]" />}
+                      <span>{PRAYER_LABELS[key].label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Pilihan Jenis Pengingat, Waktu Pemicu & Volume Audio (Proporsional 3 Kolom) */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <label
+                  htmlFor="shalat-sound-select"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68756C]"
+                >
+                  Jenis Pengingat Audio
+                </label>
+                <select
+                  id="shalat-sound-select"
+                  value={reminders.audioEnabled ? reminders.sound : 'mute'}
+                  onChange={(e) => handleSoundChange(e.target.value as AdhanSoundPreference)}
+                  className="w-full rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-3 py-2.5 text-xs font-semibold text-[#24352B] focus:border-[#046D38] focus:bg-white focus:outline-none"
+                >
+                  {SOUND_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Pengaturan Volume Audio */}
-              <div className="mt-4 rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] p-3.5">
-                <div className="flex items-center justify-between gap-2 mb-2">
+              <div>
+                <label
+                  htmlFor="shalat-lead-select"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68756C]"
+                >
+                  Waktu Pemicu Pengingat
+                </label>
+                <select
+                  id="shalat-lead-select"
+                  value={reminders.leadMinutes}
+                  onChange={(e) =>
+                    handleLeadMinutesChange(Number(e.target.value) as 0 | 5 | 10)
+                  }
+                  className="w-full rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-3 py-2.5 text-xs font-semibold text-[#24352B] focus:border-[#046D38] focus:bg-white focus:outline-none"
+                >
+                  <option value={0}>Tepat saat waktu masuk (0 menit)</option>
+                  <option value={5}>5 menit sebelum waktu masuk</option>
+                  <option value={10}>10 menit sebelum waktu masuk</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2 lg:col-span-1 rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] p-3">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
                   <label
                     htmlFor="shalat-volume-range"
-                    className="flex items-center gap-2 text-xs font-bold text-[#24352B]"
+                    className="flex items-center gap-1.5 text-xs font-bold text-[#24352B]"
                   >
                     {reminders.volume === 0 || !reminders.audioEnabled ? (
-                      <VolumeX className="h-4 w-4 text-[#68756C]" />
+                      <VolumeX className="h-3.5 w-3.5 text-[#68756C]" />
                     ) : (
-                      <Volume2 className="h-4 w-4 text-[#046D38]" />
+                      <Volume2 className="h-3.5 w-3.5 text-[#046D38]" />
                     )}
-                    <span>Volume Suara Adzan &amp; Pengingat</span>
+                    <span>Volume Suara</span>
                   </label>
                   <span className="rounded-md bg-white border border-[#E3E9E3] px-2 py-0.5 font-mono text-xs font-bold text-[#035328]">
                     {Math.round((reminders.volume ?? 0.85) * 100)}%
@@ -960,157 +1004,102 @@ export const ShalatView: React.FC<ShalatViewProps> = ({
                   aria-label="Atur volume audio Adzan"
                   className="w-full accent-[#046D38] cursor-pointer"
                 />
-                <p className="mt-1.5 text-[11px] text-[#68756C]">
-                  {
-                    SOUND_OPTIONS.find(
-                      (o) => o.id === (reminders.audioEnabled ? reminders.sound : 'mute')
-                    )?.desc
-                  }
-                </p>
-              </div>
-
-              {/* Uji Audio Berdasarkan Jenis Waktu */}
-              <div className="mt-5 border-t border-[#E3E9E3] pt-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#24352B]">
-                      Uji Suara Pengingat
-                    </h4>
-                    <p className="text-[11px] text-[#68756C]">
-                      Murottal akan dijeda otomatis saat pengingat bersuara.
-                    </p>
-                  </div>
-                  {adzanPlayback &&
-                    (adzanPlayback.isPlaying || adzanPlayback.isLoading) && (
-                      <button
-                        type="button"
-                        onClick={() => onStopAdzanAudio?.()}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#035328] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#046D38] cursor-pointer"
-                      >
-                        <Square className="h-3 w-3 fill-current text-[#FBC647]" />
-                        <span>Hentikan Suara</span>
-                      </button>
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  {ADZAN_STREAM_LIST.map((stream) => {
-                    const isThisActive =
-                      adzanPlayback?.category === stream.category &&
-                      (adzanPlayback.isPlaying || adzanPlayback.isLoading);
-                    const hasThisError =
-                      adzanPlayback?.category === stream.category &&
-                      Boolean(adzanPlayback.error);
-
-                    return (
-                      <div
-                        key={stream.category}
-                        className={`flex flex-col justify-between rounded-xl border p-3 transition-colors ${
-                          isThisActive
-                            ? 'border-[#035328] bg-[#F7F8F5]'
-                            : 'border-[#E3E9E3] bg-white'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-bold text-[#24352B]">
-                              {stream.label}
-                            </span>
-                            <span className="rounded bg-[#F7F8F5] border border-[#E3E9E3] px-1.5 py-0.5 text-[10px] font-semibold text-[#035328]">
-                              {stream.shortLabel}
-                            </span>
-                          </div>
-                          {hasThisError && adzanPlayback?.error && (
-                            <p className="mt-1 text-[11px] font-semibold text-red-600">
-                              {adzanPlayback.error}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-[#E3E9E3]">
-                          <span className="text-[10px] font-medium text-[#68756C]">
-                            {isThisActive
-                              ? adzanPlayback?.isLoading
-                                ? 'Memuat audio...'
-                                : 'Sedang diputar'
-                              : 'Siap diuji'}
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={() => onTestAdzanCategory?.(stream.category)}
-                            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
-                              isThisActive
-                                ? 'border-[#035328] bg-[#035328] text-white hover:bg-[#046D38]'
-                                : 'border-[#035328] bg-white text-[#035328] hover:bg-[#035328] hover:text-white'
-                            }`}
-                          >
-                            {isThisActive ? (
-                              <>
-                                <Square className="h-3 w-3 fill-current text-[#FBC647]" />
-                                <span>Hentikan</span>
-                              </>
-                            ) : (
-                              <>
-                                <Play className="h-3 w-3 fill-current" />
-                                <span>Uji Suara</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
             </div>
 
-            {/* Status Notifikasi & Audio */}
-            <div className="rounded-2xl border border-[#E3E9E3] bg-white p-5 lg:col-span-5 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-[#F7F8F5] p-2 text-[#035328]">
-                    <Bell className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-sm font-bold text-[#24352B]">
-                    Status Pengingat
-                  </h3>
+            {/* Uji Audio Berdasarkan Jenis Waktu */}
+            <div className="border-t border-[#E3E9E3] pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#24352B]">
+                    Uji Suara Pengingat
+                  </h4>
+                  <p className="text-[11px] text-[#68756C]">
+                    Murottal akan dijeda otomatis saat pengingat bersuara.
+                  </p>
                 </div>
-
-                <div className="mt-3.5 space-y-2 text-xs text-[#68756C]">
-                  <div className="flex items-center justify-between rounded-lg bg-[#F7F8F5] px-3 py-2">
-                    <span>Izin Notifikasi</span>
-                    <span className="font-semibold text-[#035328]">
-                      {notifPermission === 'granted'
-                        ? 'Aktif'
-                        : notifPermission === 'denied'
-                          ? 'Diblokir'
-                          : 'Belum Aktif'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg bg-[#F7F8F5] px-3 py-2">
-                    <span>Pemicu Audio</span>
-                    <span className="font-medium text-[#24352B]">1x saat jadwal tiba</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg bg-[#F7F8F5] px-3 py-2">
-                    <span>Murottal</span>
-                    <span className="font-medium text-[#24352B]">Jeda otomatis saat adzan</span>
-                  </div>
-                </div>
+                {adzanPlayback &&
+                  (adzanPlayback.isPlaying || adzanPlayback.isLoading) && (
+                    <button
+                      type="button"
+                      onClick={() => onStopAdzanAudio?.()}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#035328] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#046D38] cursor-pointer"
+                    >
+                      <Square className="h-3 w-3 fill-current text-[#FBC647]" />
+                      <span>Hentikan Suara</span>
+                    </button>
+                  )}
               </div>
 
-              {notifPermission !== 'granted' && (
-                <div className="mt-4 pt-4 border-t border-[#E3E9E3]">
-                  <button
-                    type="button"
-                    onClick={handleRequestNotificationPermission}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#046D38] px-3.5 py-2.5 text-xs font-bold text-white hover:bg-[#035328] transition-colors cursor-pointer"
-                  >
-                    <Bell className="h-3.5 w-3.5 text-[#FBC647]" />
-                    <span>Aktifkan Notifikasi</span>
-                  </button>
-                </div>
-              )}
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+                {ADZAN_STREAM_LIST.map((stream) => {
+                  const isThisActive =
+                    adzanPlayback?.category === stream.category &&
+                    (adzanPlayback.isPlaying || adzanPlayback.isLoading);
+                  const hasThisError =
+                    adzanPlayback?.category === stream.category &&
+                    Boolean(adzanPlayback.error);
+
+                  return (
+                    <div
+                      key={stream.category}
+                      className={`flex flex-col justify-between rounded-xl border p-3 transition-colors ${
+                        isThisActive
+                          ? 'border-[#035328] bg-[#F7F8F5]'
+                          : 'border-[#E3E9E3] bg-white'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-[#24352B]">
+                            {stream.label}
+                          </span>
+                          <span className="rounded bg-[#F7F8F5] border border-[#E3E9E3] px-1.5 py-0.5 text-[10px] font-semibold text-[#035328]">
+                            {stream.shortLabel}
+                          </span>
+                        </div>
+                        {hasThisError && adzanPlayback?.error && (
+                          <p className="mt-1 text-[11px] font-semibold text-red-600">
+                            {adzanPlayback.error}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-[#E3E9E3]">
+                        <span className="text-[10px] font-medium text-[#68756C]">
+                          {isThisActive
+                            ? adzanPlayback?.isLoading
+                              ? 'Memuat audio...'
+                              : 'Sedang diputar'
+                            : 'Siap diuji'}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => onTestAdzanCategory?.(stream.category)}
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                            isThisActive
+                              ? 'border-[#035328] bg-[#035328] text-white hover:bg-[#046D38]'
+                              : 'border-[#035328] bg-white text-[#035328] hover:bg-[#035328] hover:text-white'
+                          }`}
+                        >
+                          {isThisActive ? (
+                            <>
+                              <Square className="h-3 w-3 fill-current text-[#FBC647]" />
+                              <span>Hentikan</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-3 w-3 fill-current" />
+                              <span>Uji Suara</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </section>
 

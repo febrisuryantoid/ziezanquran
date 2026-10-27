@@ -31,10 +31,9 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: '/',
-          name: 'Ziezan Quran — Ziezan Solutions',
-          short_name: 'ZiezanQuran',
-          description:
-            "Dekat dengan Al-Qur'an, Tenang dalam Kehidupan. Aplikasi Al-Qur'an Digital premium karya Febri Suryanto (Ziezan Solutions) dengan terjemahan Indonesia, tafsir, audio murottal, jadwal salat, arah kiblat, doa & dzikir, serta kalender Hijriah.",
+          name: 'Ziezan Quran',
+          short_name: 'Ziezan Quran',
+          description: 'Ziezan Quran',
           theme_color: '#035328',
           background_color: '#035328',
           display: 'standalone',

@@ -1,0 +1,34 @@
+{
+  "id": "/",
+  "name": "Ziezan Quran",
+  "short_name": "Ziezan Quran",
+  "description": "Ziezan Quran",
+  "theme_color": "#035328",
+  "background_color": "#035328",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "start_url": "/",
+  "scope": "/",
+  "lang": "id",
+  "categories": ["books", "education", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/ziezan-quran.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/ziezan-quran.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/ziezan-quran.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
