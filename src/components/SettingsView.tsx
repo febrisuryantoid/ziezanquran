@@ -251,7 +251,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* Tactile Switch Toggles */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+          <button
+            type="button"
+            onClick={() =>
+              onUpdatePreferences({ ...preferences, showTajweed: !preferences.showTajweed })
+            }
+            className="p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-left cursor-pointer min-w-0 hover:border-[#046D38]/40 transition-colors"
+            style={{ borderColor: 'var(--color-border)' }}
+          >
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                Warna Tajwid
+              </p>
+              <p className="text-fluid-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                Kaidah Tajweed berwarna
+              </p>
+            </div>
+            <span
+              className={`w-11 h-6 rounded-full p-0.5 flex items-center transition-colors shrink-0 ${
+                preferences.showTajweed ? 'bg-[#046D38] justify-end' : 'bg-[#D5DFD6] justify-start'
+              }`}
+            >
+              <span className="w-5 h-5 rounded-full bg-white shadow-xs" />
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={() =>

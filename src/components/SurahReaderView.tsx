@@ -8,8 +8,10 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  HelpCircle,
   Info,
   Languages,
+  Palette,
   Pause,
   Play,
   RefreshCw,
@@ -22,6 +24,7 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ARABIC_FONT_OPTIONS, SITE_URL } from '../config/brand';
+import { renderTajweedText, TAJWEED_RULES_LIST } from '../utils/tajweedParser';
 import {
   AudioPlaybackState,
   Ayat,
@@ -90,6 +93,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
   onShowToast,
 }) => {
   const [showDescription, setShowDescription] = useState(false);
+  const [showTajweedLegend, setShowTajweedLegend] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [inSurahQuery, setInSurahQuery] = useState('');
   const [copiedAyat, setCopiedAyat] = useState<number | null>(null);
@@ -422,6 +426,34 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
 
           {/* Right: Relevant Icon-Only Actions (Fluid & Overlap-Proof) */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Toggle Tajweed Color Icon */}
+            <button
+              type="button"
+              onClick={() =>
+                onUpdatePreferences({
+                  ...preferences,
+                  showTajweed: !preferences.showTajweed,
+                })
+              }
+              aria-label={
+                preferences.showTajweed
+                  ? 'Sembunyikan warna Tajwid'
+                  : 'Tampilkan warna Tajwid'
+              }
+              title={
+                preferences.showTajweed
+                  ? 'Pewarnaan Tajwid: Aktif'
+                  : 'Pewarnaan Tajwid: Nonaktif'
+              }
+              className={`w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+                preferences.showTajweed
+                  ? 'bg-[#046D38] text-white border-[#046D38]'
+                  : 'bg-[#F7F8F5] text-[#68756C] hover:text-[#24352B] border-[#E3E9E3]'
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+
             {/* Search in Surah Toggle Icon */}
             <button
               type="button"
@@ -592,7 +624,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
       <div className="container-reader py-4 sm:py-6 space-y-3.5 sm:space-y-5">
         {/* Clean, Serene Surah Calligraphy Banner (No Cluttered Buttons) */}
         <div
-          className="rounded-[var(--radius-card)] px-4 sm:px-6 py-4 sm:py-5 border shadow-xs flex items-center justify-between gap-4"
+          className="rounded-[var(--radius-card)] px-4 sm:px-6 py-4 sm:py-5 border shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           style={{
             backgroundColor: 'var(--color-header)',
             backgroundImage:
@@ -617,12 +649,23 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
             <p className="text-xs sm:text-sm text-white/80 truncate">{surah.arti}</p>
           </div>
 
-          <span
-            className="font-arabic-amiri text-3xl sm:text-4xl lg:text-5xl font-bold shrink-0"
-            style={{ color: 'var(--color-gold)' }}
-          >
-            {surah.nama}
-          </span>
+          <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+            <button
+              type="button"
+              onClick={() => setShowTajweedLegend(true)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold border flex items-center gap-1.5 transition-colors cursor-pointer bg-white/10 hover:bg-white/20 text-white border-white/25"
+              title="Lihat Legenda Warna Tajwid"
+            >
+              <Palette className="w-3.5 h-3.5 text-[#FBC647]" />
+              <span>Legenda Tajwid</span>
+            </button>
+            <span
+              className="font-arabic-amiri text-3xl sm:text-4xl lg:text-5xl font-bold"
+              style={{ color: 'var(--color-gold)' }}
+            >
+              {surah.nama}
+            </span>
+          </div>
         </div>
 
         {/* Basmalah Opening (Shown for all surahs except Al-Fatihah #1 and At-Taubah #9) */}
@@ -632,7 +675,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
               className={`${arabicFontClass} text-2xl sm:text-3xl`}
               style={{ color: 'var(--color-header)' }}
             >
-              بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
+              {renderTajweedText('بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ', preferences.showTajweed)}
             </p>
           </div>
         )}
@@ -846,16 +889,16 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Arabic Verse Text with Complete Harakat Support */}
+                  {/* Arabic Verse Text with Tajweed Color Coding & Complete Harakat Support */}
                   <div className="pt-1 sm:pt-2 min-w-0">
                     <p
-                      className={`${arabicFontClass} text-right select-text`}
+                      className={`${arabicFontClass} text-right select-text leading-loose`}
                       style={{
                         fontSize: `clamp(22px, 4.5vw, ${preferences.arabicFontSize}px)`,
                         color: 'var(--color-text-primary)',
                       }}
                     >
-                      {ayat.teksArab}
+                      {renderTajweedText(ayat.teksArab, preferences.showTajweed)}
                     </p>
                   </div>
 
@@ -1167,6 +1210,144 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
                   >
                     Simpan
                   </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom-to-Top Pop-up Sheet: Legenda Warna Tajwid */}
+      <AnimatePresence>
+        {showTajweedLegend && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:px-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Legenda Warna Tajwid Ziezan Quran"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setShowTajweedLegend(false)}
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-10 w-full max-w-2xl max-h-[85dvh] bg-white border-t border-x shadow-2xl flex flex-col overflow-hidden"
+              style={{
+                borderColor: 'var(--color-border)',
+                borderTopLeftRadius: 'var(--radius-card)',
+                borderTopRightRadius: 'var(--radius-card)',
+              }}
+            >
+              <div
+                className="pt-2.5 pb-1 flex justify-center shrink-0"
+                style={{ backgroundColor: 'var(--color-header)' }}
+              >
+                <span className="w-10 h-1 rounded-full bg-white/30" />
+              </div>
+
+              <div
+                className="px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-3 border-b shrink-0"
+                style={{
+                  backgroundColor: 'var(--color-header)',
+                  borderColor: 'rgba(255,255,255,0.12)',
+                }}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-[#FBC647]/20 border border-[#FBC647]/40 flex items-center justify-center shrink-0">
+                    <Palette className="w-4 h-4 text-[#FBC647]" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-base sm:text-lg font-bold text-white truncate">
+                      Legenda Warna Tajwid
+                    </h3>
+                    <p className="text-xs text-white/75 truncate">
+                      Panduan Kaidah & Pewarnaan Hukum Bacaan Al-Qur'an
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowTajweedLegend(false)}
+                  className="min-w-[44px] min-h-[44px] -mr-1 rounded-xl flex items-center justify-center text-white/85 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  aria-label="Tutup panduan tajwid"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div
+                className="p-4 sm:p-6 overflow-y-auto space-y-3.5 sm:space-y-4"
+                style={{
+                  paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
+                }}
+              >
+                <div className="p-3 rounded-xl bg-[#F6FBF8] border border-[#046D38]/20 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-semibold text-[#035328]">
+                      Status Pewarnaan Tajwid
+                    </p>
+                    <p className="text-[11px] text-[#68756C]">
+                      {preferences.showTajweed
+                        ? 'Warna Tajwid sedang aktif pada teks ayat.'
+                        : 'Warna Tajwid sedang dinonaktifkan.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onUpdatePreferences({
+                        ...preferences,
+                        showTajweed: !preferences.showTajweed,
+                      })
+                    }
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border shrink-0 transition-colors cursor-pointer ${
+                      preferences.showTajweed
+                        ? 'bg-[#046D38] text-white border-[#046D38]'
+                        : 'bg-white text-[#68756C] border-[#E3E9E3]'
+                    }`}
+                  >
+                    {preferences.showTajweed ? 'Nonaktifkan' : 'Aktifkan'}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {TAJWEED_RULES_LIST.map((rule) => (
+                    <div
+                      key={rule.key}
+                      className="p-3.5 rounded-xl border space-y-2 transition-shadow hover:shadow-xs"
+                      style={{
+                        backgroundColor: rule.bgColor,
+                        borderColor: `${rule.color}33`,
+                      }}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className="px-2.5 py-0.5 rounded-md text-xs font-bold text-white shadow-2xs"
+                          style={{ backgroundColor: rule.color }}
+                        >
+                          {rule.label}
+                        </span>
+                        <span
+                          className="font-arabic-amiri text-base font-bold select-text"
+                          style={{ color: rule.color }}
+                        >
+                          {rule.example}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#24352B] leading-relaxed">
+                        {rule.description}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </motion.div>

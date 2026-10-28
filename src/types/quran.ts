@@ -113,6 +113,7 @@ export interface ReadingPreferences {
   translationFontSize: number;
   showLatin: boolean;
   showTranslation: boolean;
+  showTajweed: boolean;
   selectedQari: QariKey;
   autoScrollSpeed: number;
   autoPlayNextAyat: boolean;

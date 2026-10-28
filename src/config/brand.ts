@@ -120,6 +120,7 @@ export const DEFAULT_PREFERENCES: ReadingPreferences = {
   translationFontSize: 16,
   showLatin: true,
   showTranslation: true,
+  showTajweed: true,
   selectedQari: "05",
   autoScrollSpeed: 1,
   autoPlayNextAyat: true,
