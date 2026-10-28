@@ -30,6 +30,7 @@ interface MoreViewProps {
   bookmarksCount: number;
   notesCount: number;
   cachedSurahCount: number;
+  onOpenOfflineModal?: () => void;
 }
 
 export const MoreView: React.FC<MoreViewProps> = ({
@@ -37,6 +38,7 @@ export const MoreView: React.FC<MoreViewProps> = ({
   bookmarksCount,
   notesCount,
   cachedSurahCount,
+  onOpenOfflineModal,
 }) => {
   const [hijriLabel, setHijriLabel] = useState<string>('Kalender MABIMS Kemenag RI & Hari Besar');
   const savedLocation = storageService.getShalatLocation();
@@ -240,6 +242,35 @@ export const MoreView: React.FC<MoreViewProps> = ({
             </div>
             <ChevronRight className="w-5 h-5 text-[#68756C] group-hover:text-[#046D38] shrink-0" />
           </button>
+
+          {/* Pusat Kesiapan Offline-First & Cache */}
+          {onOpenOfflineModal && (
+            <button
+              type="button"
+              onClick={onOpenOfflineModal}
+              className="w-full min-h-[64px] p-4 flex items-center justify-between gap-3.5 text-left hover:bg-[#F7F8F5] transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[#EDF7F1] border border-[#046D38]/25 group-hover:bg-[#046D38] group-hover:border-[#046D38] flex items-center justify-center shrink-0 transition-colors">
+                  <ShieldCheck className="w-5 h-5 text-[#046D38] group-hover:text-[#FBC647]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm sm:text-base font-bold text-[#24352B] group-hover:text-[#046D38] transition-colors">
+                      Arsitektur Offline-First &amp; Penyimpanan Lokal
+                    </p>
+                    <span className="px-2 py-0.5 rounded-md bg-[#046D38] text-white text-[10px] font-bold">
+                      IndexedDB &amp; Cache
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#68756C] truncate mt-0.5">
+                    Verifikasi 135 resource wajib, kuota penyimpanan &amp; pembaruan PWA
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#68756C] group-hover:text-[#046D38] shrink-0" />
+            </button>
+          )}
 
           {/* Standalone PWA App Install Item */}
           {isInstalled ? (

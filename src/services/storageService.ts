@@ -58,11 +58,44 @@ export const DEFAULT_SHALAT_REMINDERS: ShalatReminderSettings = {
   schemaVersion: 3,
 };
 
-const IDB_NAME = 'ziezan_quran_idb_v2';
+const IDB_NAME = 'ziezan_quran_idb_v3';
 const IDB_VERSION = 1;
 const STORE_META = 'meta_store';
 const STORE_SURAHS = 'surah_details';
 const STORE_TAFSIRS = 'tafsir_details';
+const STORE_ISLAMIC_CACHE = 'islamic_cache_store';
+
+export interface IDBCacheRecord<T = unknown> {
+  key: string;
+  savedAt: number;
+  expiresAt: number;
+  data: T;
+}
+
+export interface OfflineSyncPersistedManifest {
+  appVersion: string;
+  isFullyVerified: boolean;
+  lastVerifiedAt: number | null;
+  completedResourceIds: string[];
+  failedResourceIds: Record<string, string>;
+  totalExpectedResources: number;
+  cachedSurahCount: number;
+  cachedTafsirCount: number;
+}
+
+export interface IntegrityCheckReport {
+  isValid: boolean;
+  surahListValid: boolean;
+  cachedSurahCount: number;
+  corruptedSurahNumbers: number[];
+  missingSurahNumbers: number[];
+  doaCatalogValid: boolean;
+  shalatScheduleValid: boolean;
+  hijriDataValid: boolean;
+  appShellCachedCount: number;
+  appShellExpectedCount: number;
+  checkedAt: number;
+}
 
 function safeEncryptedRead<T>(key: string, fallback: T): T {
   try {
@@ -81,8 +114,11 @@ function safeEncryptedWrite(key: string, data: unknown): void {
     const plainJson = JSON.stringify(data);
     const encrypted = securityService.encryptStoragePayload(plainJson);
     localStorage.setItem(key, encrypted);
+    // Also mirror user state into IndexedDB asynchronously so user data is doubly persistent
+    void idbCacheService.mirrorUserKeyToIDB(key, data);
   } catch {
-    // Ignore storage quota errors
+    // Fallback to IndexedDB mirror if localStorage quota is full
+    void idbCacheService.mirrorUserKeyToIDB(key, data);
   }
 }
 
@@ -148,7 +184,6 @@ export const storageService = {
         ? rawSound
         : 'adzan-auto';
 
-    // Migrate v1/v2 default sound to 'adzan-auto' so mapped MP3 streams are active by default
     const resolvedSound =
       !isV3 && (validSound === 'adzan-chime' || !saved.sound) ? 'adzan-auto' : validSound;
 
@@ -179,7 +214,6 @@ export const storageService = {
       prayers: {
         ...DEFAULT_SHALAT_REMINDERS.prayers,
         ...(saved.prayers || {}),
-        // Ensure standard prayer times default to true on migration
         ...(!isV3
           ? {
               imsak: true,
@@ -260,7 +294,6 @@ export const storageService = {
       localStorage.removeItem(STORAGE_KEYS.QIBLA_PREFERENCE);
       return null;
     }
-    // Round coordinates to 2 decimal places (~1.1 km) to avoid storing high-precision GPS tracks
     const sanitized: SavedQiblaPreference = {
       label: securityService.sanitizePlainText(pref.label, 80) || 'Lokasi Tersimpan',
       coarseLat: Math.round(pref.lat * 100) / 100,
@@ -459,7 +492,6 @@ export const storageService = {
     );
   },
 
-
   importUserData(jsonString: string): boolean {
     const parsed = securityService.sanitizeJsonObject<Record<string, unknown>>(jsonString);
     if (!parsed || typeof parsed !== 'object') return false;
@@ -564,11 +596,17 @@ export const storageService = {
   },
 };
 
-// IndexedDB helper for caching full 114 surah details & tafsir offline
+// ============================================================================
+// INDEXED-DB OFFLINE-FIRST ENGINE (ziezan_quran_idb_v3)
+// ============================================================================
 let dbPromise: Promise<IDBDatabase | null> | null = null;
+let idbAvailable = true;
 
 function openQuranIDB(): Promise<IDBDatabase | null> {
-  if (typeof indexedDB === 'undefined') return Promise.resolve(null);
+  if (typeof indexedDB === 'undefined') {
+    idbAvailable = false;
+    return Promise.resolve(null);
+  }
   if (dbPromise) return dbPromise;
 
   dbPromise = new Promise((resolve) => {
@@ -585,10 +623,25 @@ function openQuranIDB(): Promise<IDBDatabase | null> {
         if (!db.objectStoreNames.contains(STORE_TAFSIRS)) {
           db.createObjectStore(STORE_TAFSIRS, { keyPath: 'nomor' });
         }
+        if (!db.objectStoreNames.contains(STORE_ISLAMIC_CACHE)) {
+          db.createObjectStore(STORE_ISLAMIC_CACHE, { keyPath: 'key' });
+        }
       };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => resolve(null);
+      request.onsuccess = () => {
+        idbAvailable = true;
+        resolve(request.result);
+      };
+      request.onerror = () => {
+        idbAvailable = false;
+        dbPromise = null;
+        resolve(null);
+      };
+      request.onblocked = () => {
+        resolve(null);
+      };
     } catch {
+      idbAvailable = false;
+      dbPromise = null;
       resolve(null);
     }
   });
@@ -597,6 +650,25 @@ function openQuranIDB(): Promise<IDBDatabase | null> {
 }
 
 export const idbCacheService = {
+  isIDBSupportedAndHealthy(): boolean {
+    return typeof indexedDB !== 'undefined' && idbAvailable;
+  },
+
+  async mirrorUserKeyToIDB(key: string, data: unknown): Promise<void> {
+    const db = await openQuranIDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_META, 'readwrite');
+        tx.objectStore(STORE_META).put({ updatedAt: Date.now(), data }, `user_mirror:${key}`);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch {
+        resolve();
+      }
+    });
+  },
+
   async getSurahList(): Promise<SurahSummary[] | null> {
     const db = await openQuranIDB();
     if (!db) return null;
@@ -612,17 +684,17 @@ export const idbCacheService = {
     });
   },
 
-  async saveSurahList(list: SurahSummary[]): Promise<void> {
+  async saveSurahList(list: SurahSummary[]): Promise<boolean> {
     const db = await openQuranIDB();
-    if (!db) return;
+    if (!db) return false;
     return new Promise((resolve) => {
       try {
         const tx = db.transaction(STORE_META, 'readwrite');
         tx.objectStore(STORE_META).put(list, 'surah_list');
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
       } catch {
-        resolve();
+        resolve(false);
       }
     });
   },
@@ -642,17 +714,17 @@ export const idbCacheService = {
     });
   },
 
-  async saveSurahDetail(detail: SurahDetail): Promise<void> {
+  async saveSurahDetail(detail: SurahDetail): Promise<boolean> {
     const db = await openQuranIDB();
-    if (!db) return;
+    if (!db) return false;
     return new Promise((resolve) => {
       try {
         const tx = db.transaction(STORE_SURAHS, 'readwrite');
         tx.objectStore(STORE_SURAHS).put(detail);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
       } catch {
-        resolve();
+        resolve(false);
       }
     });
   },
@@ -703,17 +775,130 @@ export const idbCacheService = {
     });
   },
 
-  async saveTafsirDetail(detail: TafsirDetail): Promise<void> {
+  async saveTafsirDetail(detail: TafsirDetail): Promise<boolean> {
     const db = await openQuranIDB();
-    if (!db) return;
+    if (!db) return false;
     return new Promise((resolve) => {
       try {
         const tx = db.transaction(STORE_TAFSIRS, 'readwrite');
         tx.objectStore(STORE_TAFSIRS).put(detail);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
       } catch {
-        resolve();
+        resolve(false);
+      }
+    });
+  },
+
+  async getCachedTafsirNumbers(): Promise<number[]> {
+    const db = await openQuranIDB();
+    if (!db) return [];
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_TAFSIRS, 'readonly');
+        const req = tx.objectStore(STORE_TAFSIRS).getAllKeys();
+        req.onsuccess = () =>
+          resolve(((req.result as IDBValidKey[]) || []).map((k) => Number(k)));
+        req.onerror = () => resolve([]);
+      } catch {
+        resolve([]);
+      }
+    });
+  },
+
+  // Structured API Cache in IndexedDB (Doa, Shalat, Hijri, Qibla)
+  async getIslamicCache<T>(key: string, allowExpiredFallback = false): Promise<T | null> {
+    const db = await openQuranIDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_ISLAMIC_CACHE, 'readonly');
+        const req = tx.objectStore(STORE_ISLAMIC_CACHE).get(key);
+        req.onsuccess = () => {
+          const record = req.result as IDBCacheRecord<T> | undefined;
+          if (!record || record.data === undefined) {
+            resolve(null);
+            return;
+          }
+          if (!allowExpiredFallback && record.expiresAt <= Date.now()) {
+            resolve(null);
+            return;
+          }
+          resolve(record.data);
+        };
+        req.onerror = () => resolve(null);
+      } catch {
+        resolve(null);
+      }
+    });
+  },
+
+  async getAllIslamicCacheRecords(): Promise<IDBCacheRecord[]> {
+    const db = await openQuranIDB();
+    if (!db) return [];
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_ISLAMIC_CACHE, 'readonly');
+        const req = tx.objectStore(STORE_ISLAMIC_CACHE).getAll();
+        req.onsuccess = () => resolve((req.result as IDBCacheRecord[]) || []);
+        req.onerror = () => resolve([]);
+      } catch {
+        resolve([]);
+      }
+    });
+  },
+
+  async saveIslamicCache<T>(key: string, data: T, ttlMs: number): Promise<boolean> {
+    const db = await openQuranIDB();
+    if (!db) return false;
+    const now = Date.now();
+    const record: IDBCacheRecord<T> = {
+      key,
+      savedAt: now,
+      expiresAt: now + ttlMs,
+      data,
+    };
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_ISLAMIC_CACHE, 'readwrite');
+        tx.objectStore(STORE_ISLAMIC_CACHE).put(record);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      } catch {
+        resolve(false);
+      }
+    });
+  },
+
+  async getOfflineSyncManifest(): Promise<OfflineSyncPersistedManifest | null> {
+    const db = await openQuranIDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_META, 'readonly');
+        const req = tx.objectStore(STORE_META).get('offline_sync_manifest');
+        req.onsuccess = () =>
+          resolve((req.result as OfflineSyncPersistedManifest) || null);
+        req.onerror = () => resolve(null);
+      } catch {
+        resolve(null);
+      }
+    });
+  },
+
+  async saveOfflineSyncManifest(
+    manifest: OfflineSyncPersistedManifest
+  ): Promise<boolean> {
+    const db = await openQuranIDB();
+    if (!db) return false;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_META, 'readwrite');
+        tx.objectStore(STORE_META).put(manifest, 'offline_sync_manifest');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      } catch {
+        resolve(false);
       }
     });
   },

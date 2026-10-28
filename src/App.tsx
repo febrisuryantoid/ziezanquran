@@ -17,6 +17,10 @@ import { HijriCalendarView } from './components/HijriCalendarView';
 import { HomeView } from './components/HomeView';
 import { AboutView, MoreView } from './components/MoreView';
 import { FloatingBottomNav, Navbar } from './components/Navbar';
+import {
+  OfflineManagerModal,
+  OfflineStatusBanner,
+} from './components/OfflineManagerModal';
 import { QiblaView } from './components/QiblaView';
 import { SearchView } from './components/SearchView';
 import { SettingsView } from './components/SettingsView';
@@ -36,6 +40,7 @@ import {
   pruneTriggeredEvents,
 } from './services/adzanAudioService';
 import { equranShalatApi } from './services/islamicApi';
+import { offlineSyncService } from './services/offlineSyncService';
 import { hydrateMemoryCacheFromIDB, quranApi } from './services/quranApi';
 import { securityService } from './services/securityService';
 import { seoService } from './services/seoService';
@@ -86,6 +91,7 @@ export default function App() {
   const [readerError, setReaderError] = useState<string | null>(null);
 
   const [cachedSurahCount, setCachedSurahCount] = useState<number>(0);
+  const [offlineModalOpen, setOfflineModalOpen] = useState<boolean>(false);
 
   // Tafsir Modal State
   const [tafsirModalOpen, setTafsirModalOpen] = useState<boolean>(false);
@@ -197,25 +203,20 @@ export default function App() {
     }
   }, [minSplashElapsed, isLoadingSurahs]);
 
-  // Background progressive indexing of all 114 surahs so cross-surah meaning search and offline reading are always ready
+  // Initialize Offline-First Architecture & Synchronize All 135 Mandatory Resources
   useEffect(() => {
-    if (surahs.length === 0) return;
-    const controller = new AbortController();
+    const unsubscribe = offlineSyncService.subscribe((next) => {
+      setCachedSurahCount(next.cachedSurahCount);
+    });
     const timer = setTimeout(() => {
-      quranApi
-        .syncFullDataset((count) => {
-          setCachedSurahCount(count);
-        }, controller.signal)
-        .catch(() => {
-          // Ignore background sync error
-        });
-    }, 1200);
+      void offlineSyncService.initialize();
+    }, 600);
 
     return () => {
       clearTimeout(timer);
-      controller.abort();
+      unsubscribe();
     };
-  }, [surahs.length]);
+  }, []);
 
   // Navigate to a tab and push browser history entry with clean path URLs
   const handleSelectTab = useCallback((nextTab: ActiveTab, pushHistory = true) => {
@@ -1297,23 +1298,8 @@ export default function App() {
         }
       />
 
-      {/* Offline Status Banner */}
-      {!isOnline && (
-        <div
-          className="px-4 py-2 text-xs font-semibold flex items-center justify-center gap-2 border-b text-center"
-          style={{
-            backgroundColor: '#FDF6E2',
-            borderColor: 'var(--color-gold)',
-            color: '#1D2B22',
-          }}
-        >
-          <WifiOff className="w-3.5 h-3.5 text-[#035328] shrink-0" />
-          <span>
-            Mode Luar Jaringan (Offline) — Menampilkan surat dan penanda yang tersimpan di perangkat.
-          </span>
-        </div>
-      )}
-
+      {/* Offline-First Preparation Progress, Update & Connectivity Status Banner */}
+      <OfflineStatusBanner onOpenModal={() => setOfflineModalOpen(true)} />
 
       {/* Main Content Area */}
       <main className="flex-1 min-w-0">
@@ -1442,6 +1428,7 @@ export default function App() {
             onUpdatePreferences={handleUpdatePreferences}
             onUpdateCachedCount={setCachedSurahCount}
             onShowToast={showToast}
+            onOpenOfflineModal={() => setOfflineModalOpen(true)}
           />
         )}
 
@@ -1451,6 +1438,7 @@ export default function App() {
             bookmarksCount={bookmarks.length}
             notesCount={notes.length}
             cachedSurahCount={cachedSurahCount}
+            onOpenOfflineModal={() => setOfflineModalOpen(true)}
           />
         )}
 
@@ -1479,6 +1467,13 @@ export default function App() {
           <strong style={{ color: 'var(--color-primary)' }}>{APP_INFO.agencyName}</strong>)
         </span>
       </footer>
+
+      {/* Offline-First & PWA Control Center Modal */}
+      <OfflineManagerModal
+        isOpen={offlineModalOpen}
+        onClose={() => setOfflineModalOpen(false)}
+        onShowToast={showToast}
+      />
 
       {/* Official Tafsir Modal */}
       <TafsirModal

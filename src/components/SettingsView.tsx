@@ -27,6 +27,7 @@ interface SettingsViewProps {
   onUpdatePreferences: (next: ReadingPreferences) => void;
   onUpdateCachedCount: (count: number) => void;
   onShowToast?: (msg: string) => void;
+  onOpenOfflineModal?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -35,6 +36,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUpdatePreferences,
   onUpdateCachedCount,
   onShowToast,
+  onOpenOfflineModal,
 }) => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [isSyncingOffline, setIsSyncingOffline] = useState(false);
@@ -443,22 +445,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }}
               />
             </div>
-            <button
-              type="button"
-              onClick={handleSyncOfflineData}
-              disabled={isSyncingOffline || cachedSurahCount >= 114}
-              className="w-full min-h-[40px] px-4 py-2 rounded-full text-xs font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-55 cursor-pointer"
-              style={{ backgroundColor: 'var(--color-primary)' }}
-            >
-              <Download className="w-4 h-4 text-[#FBC647] shrink-0" />
-              <span className="truncate">
-                {cachedSurahCount >= 114
-                  ? '114 Surat Tersimpan Offline'
-                  : isSyncingOffline
-                    ? `Mengunduh (${cachedSurahCount}/114)...`
-                    : 'Unduh 114 Surat Offline'}
-              </span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={handleSyncOfflineData}
+                disabled={isSyncingOffline || cachedSurahCount >= 114}
+                className="flex-1 min-h-[40px] px-4 py-2 rounded-full text-xs font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-55 cursor-pointer"
+                style={{ backgroundColor: 'var(--color-primary)' }}
+              >
+                <Download className="w-4 h-4 text-[#FBC647] shrink-0" />
+                <span className="truncate">
+                  {cachedSurahCount >= 114
+                    ? '114 Surat Tersimpan Offline'
+                    : isSyncingOffline
+                      ? `Mengunduh (${cachedSurahCount}/114)...`
+                      : 'Unduh 114 Surat Offline'}
+                </span>
+              </button>
+
+              {onOpenOfflineModal && (
+                <button
+                  type="button"
+                  onClick={onOpenOfflineModal}
+                  className="min-h-[40px] px-3.5 py-2 rounded-full border border-[#046D38]/30 bg-[#F7F8F5] hover:bg-[#EDF5F0] text-[#035328] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Database className="w-3.5 h-3.5 text-[#046D38]" />
+                  <span>Panel Offline-First</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

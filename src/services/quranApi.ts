@@ -69,7 +69,21 @@ async function fetchWithRetry<T>(
     }
   }
 
-  throw lastError || new Error('Gagal memuat data Al-Qur\'an.');
+  throw lastError || new Error("Gagal memuat data Al-Qur'an.");
+}
+
+export function isSurahDetailIntegrityValid(detail: SurahDetail | null | undefined): boolean {
+  if (!detail || typeof detail.nomor !== 'number' || detail.nomor < 1 || detail.nomor > 114) {
+    return false;
+  }
+  if (!Array.isArray(detail.ayat) || detail.ayat.length === 0) {
+    return false;
+  }
+  if (typeof detail.jumlahAyat === 'number' && detail.ayat.length !== detail.jumlahAyat) {
+    return false;
+  }
+  const firstAyat = detail.ayat[0];
+  return Boolean(firstAyat && firstAyat.teksArab && firstAyat.teksIndonesia);
 }
 
 export async function hydrateMemoryCacheFromIDB(): Promise<void> {
@@ -78,18 +92,21 @@ export async function hydrateMemoryCacheFromIDB(): Promise<void> {
 
   hydrationPromise = (async () => {
     try {
-      const [cachedList, cachedDetails] = await Promise.all([
+      const [cachedList, cachedDetails, cachedTafsirNums] = await Promise.all([
         idbCacheService.getSurahList(),
         idbCacheService.getAllCachedSurahDetails(),
+        idbCacheService.getCachedTafsirNumbers(),
       ]);
-      if (cachedList && cachedList.length > 0 && !memorySurahList) {
+      if (cachedList && cachedList.length === 114 && !memorySurahList) {
         memorySurahList = cachedList;
       }
       for (const detail of cachedDetails) {
-        if (detail && detail.nomor) {
+        if (isSurahDetailIntegrityValid(detail)) {
           memorySurahMap.set(detail.nomor, detail);
         }
       }
+      // Track tafsir presence lazily
+      void cachedTafsirNums;
     } finally {
       isHydratedFromIDB = true;
     }
@@ -108,12 +125,19 @@ export const quranApi = {
 
     try {
       const data = await fetchWithRetry<SurahSummary[]>('/surat');
-      memorySurahList = data;
-      await idbCacheService.saveSurahList(data);
+      if (Array.isArray(data) && data.length === 114) {
+        memorySurahList = data;
+        await idbCacheService.saveSurahList(data);
+      }
       return data;
     } catch (error) {
       if (memorySurahList && memorySurahList.length > 0) {
         return memorySurahList;
+      }
+      const idbList = await idbCacheService.getSurahList();
+      if (idbList && idbList.length > 0) {
+        memorySurahList = idbList;
+        return idbList;
       }
       throw error;
     }
@@ -127,25 +151,31 @@ export const quranApi = {
     await hydrateMemoryCacheFromIDB();
 
     if (!forceRefresh && memorySurahMap.has(nomor)) {
-      return memorySurahMap.get(nomor)!;
+      const mem = memorySurahMap.get(nomor)!;
+      if (isSurahDetailIntegrityValid(mem)) {
+        return mem;
+      }
     }
 
     if (!forceRefresh) {
       const idbCached = await idbCacheService.getSurahDetail(nomor);
-      if (idbCached) {
-        memorySurahMap.set(nomor, idbCached);
-        return idbCached;
+      if (isSurahDetailIntegrityValid(idbCached)) {
+        memorySurahMap.set(nomor, idbCached!);
+        return idbCached!;
       }
     }
 
     try {
       const data = await fetchWithRetry<SurahDetail>(`/surat/${nomor}`);
+      if (!isSurahDetailIntegrityValid(data)) {
+        throw new Error(`Data Surat ke-${nomor} tidak lengkap saat diverifikasi.`);
+      }
       memorySurahMap.set(nomor, data);
       await idbCacheService.saveSurahDetail(data);
       return data;
     } catch (error) {
       const fallback = memorySurahMap.get(nomor) || (await idbCacheService.getSurahDetail(nomor));
-      if (fallback) return fallback;
+      if (fallback && isSurahDetailIntegrityValid(fallback)) return fallback;
       throw error;
     }
   },
@@ -161,7 +191,7 @@ export const quranApi = {
 
     if (!forceRefresh) {
       const idbCached = await idbCacheService.getTafsirDetail(nomor);
-      if (idbCached) {
+      if (idbCached && Array.isArray(idbCached.tafsir) && idbCached.tafsir.length > 0) {
         memoryTafsirMap.set(nomor, idbCached);
         return idbCached;
       }
@@ -183,39 +213,59 @@ export const quranApi = {
     return memorySurahMap.size;
   },
 
+  hasValidSurahInMemory(nomor: number): boolean {
+    return isSurahDetailIntegrityValid(memorySurahMap.get(nomor));
+  },
+
+  getMissingOrInvalidSurahNumbers(): number[] {
+    const missing: number[] = [];
+    for (let i = 1; i <= 114; i++) {
+      const s = memorySurahMap.get(i);
+      if (!isSurahDetailIntegrityValid(s)) {
+        missing.push(i);
+      }
+    }
+    return missing;
+  },
+
   async syncFullDataset(
-    onProgress?: (cachedCount: number, total: number) => void,
-    signal?: AbortSignal
+    onProgress?: (cachedCount: number, total: number, currentSurah?: number) => void,
+    signal?: AbortSignal,
+    onSurahError?: (surahNo: number, errMessage: string) => void
   ): Promise<number> {
     await hydrateMemoryCacheFromIDB();
     const total = 114;
     onProgress?.(memorySurahMap.size, total);
 
-    const missingNumbers: number[] = [];
-    for (let i = 1; i <= 114; i++) {
-      if (!memorySurahMap.has(i)) {
-        missingNumbers.push(i);
-      }
-    }
+    const missingNumbers = this.getMissingOrInvalidSurahNumbers();
 
     if (missingNumbers.length === 0) {
       onProgress?.(114, 114);
       return 114;
     }
 
-    const CONCURRENCY = 6;
+    const CONCURRENCY = 5;
     let index = 0;
 
     const worker = async () => {
       while (index < missingNumbers.length) {
         if (signal?.aborted) return;
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          onSurahError?.(
+            missingNumbers[index],
+            'Koneksi internet terputus saat mengunduh surat.'
+          );
+          return;
+        }
         const currentIdx = index++;
         const surahNo = missingNumbers[currentIdx];
         try {
           await this.getSurahDetail(surahNo);
-          onProgress?.(memorySurahMap.size, total);
-        } catch {
-          // Continue indexing remaining surahs even if one fails temporarily
+          onProgress?.(memorySurahMap.size, total, surahNo);
+        } catch (err) {
+          const msg =
+            err instanceof Error ? err.message : `Gagal mengunduh Surat ke-${surahNo}`;
+          onSurahError?.(surahNo, msg);
         }
       }
     };
@@ -227,6 +277,53 @@ export const quranApi = {
     await Promise.all(workers);
 
     return memorySurahMap.size;
+  },
+
+  async syncAllTafsirs(
+    onProgress?: (cachedCount: number, total: number) => void,
+    signal?: AbortSignal
+  ): Promise<number> {
+    const existingKeys = await idbCacheService.getCachedTafsirNumbers();
+    const existingSet = new Set<number>(existingKeys);
+    const total = 114;
+    onProgress?.(existingSet.size, total);
+
+    const missing: number[] = [];
+    for (let i = 1; i <= 114; i++) {
+      if (!existingSet.has(i)) missing.push(i);
+    }
+
+    if (missing.length === 0) {
+      onProgress?.(114, 114);
+      return 114;
+    }
+
+    const CONCURRENCY = 4;
+    let index = 0;
+
+    const worker = async () => {
+      while (index < missing.length) {
+        if (signal?.aborted) return;
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+        const currentIdx = index++;
+        const surahNo = missing[currentIdx];
+        try {
+          await this.getTafsirDetail(surahNo);
+          existingSet.add(surahNo);
+          onProgress?.(existingSet.size, total);
+        } catch {
+          // Continue
+        }
+      }
+    };
+
+    const workers = Array.from(
+      { length: Math.min(CONCURRENCY, missing.length) },
+      () => worker()
+    );
+    await Promise.all(workers);
+
+    return existingSet.size;
   },
 
   async searchDataset(
@@ -250,7 +347,7 @@ export const quranApi = {
     const collectMatchesFromMemory = (): SearchMatch[] => {
       const results: SearchMatch[] = [];
 
-      // 1. Check direct Surah:Ayat pattern e.g. "2:255" or "36:1" or "al-baqarah 255"
+      // 1. Check direct Surah:Ayat pattern e.g. "2:255" or "36:1"
       const colonMatch = query.match(/^(\d{1,3})\s*[:/.,-]\s*(\d{1,3})$/);
       if (colonMatch) {
         const sNo = parseInt(colonMatch[1], 10);
@@ -307,7 +404,7 @@ export const quranApi = {
         }
       }
 
-      // 2. Match Surah Metadata (if no specific surah filter or matches filter)
+      // 2. Match Surah Metadata
       for (const surah of surahList) {
         if (options?.filterSurahNomor && surah.nomor !== options.filterSurahNomor) {
           continue;
@@ -356,7 +453,6 @@ export const quranApi = {
         if (!detail || !detail.ayat) continue;
 
         for (const ayat of detail.ayat) {
-          // Avoid duplicating exact colon match already pushed
           if (
             results.some(
               (r) =>
@@ -407,7 +503,6 @@ export const quranApi = {
       return results;
     };
 
-    // If direct surah:ayat or specific surah filter is requested and not yet in memory, fetch it first!
     const colonMatch = query.match(/^(\d{1,3})\s*[:/.,-]\s*(\d{1,3})$/);
     if (colonMatch) {
       const targetSurah = parseInt(colonMatch[1], 10);
@@ -443,12 +538,15 @@ export const quranApi = {
       }
     }
 
-    // Emit immediate results from already-cached surahs
     let currentResults = collectMatchesFromMemory();
     options?.onPartialResults?.(currentResults, memorySurahMap.size);
 
-    // If not all 114 surahs are cached yet and no single-surah filter is active, progressively index remaining surahs
-    if (memorySurahMap.size < 114 && !options?.filterSurahNomor && !colonMatch) {
+    if (
+      memorySurahMap.size < 114 &&
+      !options?.filterSurahNomor &&
+      !colonMatch &&
+      (typeof navigator === 'undefined' || navigator.onLine)
+    ) {
       await this.syncFullDataset((cachedCount) => {
         if (cachedCount % 12 === 0 || cachedCount === 114) {
           currentResults = collectMatchesFromMemory();
