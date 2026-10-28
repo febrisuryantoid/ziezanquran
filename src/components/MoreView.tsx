@@ -465,7 +465,7 @@ export const AboutView: React.FC<AboutViewProps> = () => {
         <h2 className="font-display text-base font-bold text-[#24352B]">
           Sumber Data Resmi
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div className="p-3 rounded-xl bg-[#F7F8F5] border border-[#E3E9E3]">
             <p className="font-bold text-[#035328]">Al-Qur&apos;an &amp; Murottal</p>
             <p className="text-[#68756C] mt-0.5">eQuran.id · Kemenag RI &amp; 6 Qari</p>

@@ -599,7 +599,7 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
               Tidak ada data hari besar Islam untuk tahun {selectedHijriYear} H.
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-3">
               {eventsList.map((ev) => {
                 const [, mStr, dStr] = ev.hijri.split('-');
                 const mNum = parseInt(mStr, 10);
@@ -785,7 +785,7 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
           </div>
 
           {isLoadingYear || !yearData ? (
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 12 }).map((_, i) => (
                 <div
                   key={i}
@@ -794,7 +794,7 @@ export const HijriCalendarView: React.FC<HijriCalendarViewProps> = ({
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {Object.entries(HIJRI_MONTH_NAMES).map(([mKey, meta]) => {
                 const days = yearData.months?.[mKey] || [];
                 const firstDay = days[0];

@@ -368,7 +368,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
           paddingTop: 'var(--safe-top)',
         }}
       >
-        <div className="container-reader h-13 sm:h-15 flex items-center justify-between gap-1 sm:gap-2.5 min-w-0">
+        <div className="container-reader mobile-landscape-reader-header h-13 sm:h-15 flex items-center justify-between gap-1 sm:gap-2.5 min-w-0">
           {/* Left: Back Icon Button Only */}
           <button
             type="button"
@@ -385,7 +385,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
           </button>
 
           {/* Center: Compact Surah & Ayat Jump Selectors */}
-          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1 max-w-md mx-auto">
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1 max-w-md lg:max-w-xl mx-auto">
             <select
               value={surah.nomor}
               onChange={(e) => onSelectSurah(Number(e.target.value), 1)}
@@ -1133,7 +1133,7 @@ export const SurahReaderView: React.FC<SurahReaderViewProps> = ({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 w-full max-w-xl bg-white border-t border-x shadow-2xl flex flex-col overflow-hidden"
+              className="relative z-10 w-full max-w-xl max-h-[88dvh] overflow-y-auto bg-white border-t border-x shadow-2xl flex flex-col"
               style={{
                 borderColor: 'var(--color-border)',
                 borderTopLeftRadius: 'var(--radius-card)',

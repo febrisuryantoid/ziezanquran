@@ -343,7 +343,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-2.5">
           {Object.values(QARI_OPTIONS).map((qari) => {
             const active = preferences.selectedQari === qari.id;
             return (

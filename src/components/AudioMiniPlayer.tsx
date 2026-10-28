@@ -100,24 +100,24 @@ export const AudioMiniPlayer: React.FC<AudioMiniPlayerProps> = ({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 56, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-[940px] pointer-events-auto"
+            className="w-full max-w-6xl pointer-events-auto"
             role="region"
             aria-label="Pemutar Audio Murottal"
           >
             <div
-              className="bg-white/98 backdrop-blur-xl border shadow-[0_10px_32px_rgba(3,83,40,0.15)] px-3.5 sm:px-5 pt-2.5 pb-2.5 sm:py-3 flex flex-col gap-2 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-3.5 md:gap-y-2"
+              className="mobile-landscape-mini-player bg-white/98 backdrop-blur-xl border shadow-[0_10px_32px_rgba(3,83,40,0.15)] px-3.5 sm:px-5 pt-2.5 pb-2.5 sm:py-3 flex flex-col gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-3.5 sm:gap-y-1.5"
               style={{
                 borderColor: 'var(--color-border)',
                 borderRadius: 'var(--radius-card)',
               }}
             >
               {/* Subtle Drag Handle Indicator */}
-              <div className="flex justify-center -mt-0.5 pb-0.5 md:col-span-2">
+              <div className="mobile-landscape-hide-handle flex justify-center -mt-0.5 pb-0.5 sm:col-span-2">
                 <span className="w-9 h-1 rounded-full bg-[#E3E9E3]" />
               </div>
 
-              {/* TOP ROW (Left on Desktop/Tablet Landscape): Nama Surat, Posisi Ayat, Nama Qari & Icon-Only Controls */}
-              <div className="flex items-center justify-between gap-2 min-w-0 md:order-1">
+              {/* TOP ROW (Left on Mobile Landscape, Tablet & Desktop): Nama Surat, Posisi Ayat, Nama Qari & Icon-Only Controls */}
+              <div className="flex items-center justify-between gap-2 min-w-0 sm:order-1">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -204,7 +204,7 @@ export const AudioMiniPlayer: React.FC<AudioMiniPlayerProps> = ({
               </div>
 
               {/* MIDDLE ROW: Progress Scrubber */}
-              <div className="flex items-center gap-2.5 min-w-0 md:col-span-2 md:order-3">
+              <div className="flex items-center gap-2.5 min-w-0 sm:col-span-2 sm:order-3">
                 <span className="text-[10px] sm:text-[11px] font-mono-num text-[#68756C] w-8 sm:w-9 text-right shrink-0">
                   {formatTime(currentTime)}
                 </span>
@@ -223,9 +223,9 @@ export const AudioMiniPlayer: React.FC<AudioMiniPlayerProps> = ({
                 </span>
               </div>
 
-              {/* BOTTOM ROW (Aligned on Same Single Row on Desktop/Tablet Landscape): Ergonomic Controls */}
+              {/* BOTTOM ROW (Aligned on Same Single Row on Mobile Landscape, Tablet & Desktop): Ergonomic Controls */}
               <div
-                className="pt-1 border-t flex items-center justify-between gap-2 md:order-2 md:pt-0 md:border-t-0 md:border-l md:pl-3.5 md:justify-end md:gap-2"
+                className="pt-1 border-t flex items-center justify-between gap-2 sm:order-2 sm:pt-0 sm:border-t-0 sm:border-l sm:pl-3.5 sm:justify-end sm:gap-2"
                 style={{ borderColor: 'var(--color-border)' }}
               >
                 {/* Left Control: Auto-Next / Repeat-1-Ayat Tahfidz Mode Toggle */}
@@ -348,7 +348,7 @@ export const AudioMiniPlayer: React.FC<AudioMiniPlayerProps> = ({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 w-full max-w-md bg-white border-t border-x shadow-2xl flex flex-col overflow-hidden"
+              className="relative z-10 w-full max-w-md max-h-[88dvh] bg-white border-t border-x shadow-2xl flex flex-col overflow-hidden"
               style={{
                 borderColor: 'var(--color-border)',
                 borderTopLeftRadius: 'var(--radius-card)',

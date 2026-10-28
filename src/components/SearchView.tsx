@@ -306,7 +306,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5 items-start">
               {displayedResults.map((match, idx) =>
                 match.type === 'surah' ? (
                   <div
@@ -435,7 +435,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
           >
             Ayat &amp; Doa Pilihan
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3">
             {QUICK_VERSES.map((item) => (
               <button
                 key={`${item.surahNomor}-${item.ayatNomor}`}

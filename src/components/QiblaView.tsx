@@ -307,9 +307,9 @@ export const QiblaView: React.FC<QiblaViewProps> = ({ onShowToast }) => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-12">
         {/* Left Column: Visual Compass & Sensor Status */}
-        <div className="lg:col-span-6">
+        <div className="md:col-span-6">
           <div className="rounded-2xl border border-[#E3E9E3] bg-white p-5 sm:p-6">
             {/* Sensor Status Banner */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] px-3.5 py-2.5">
@@ -349,7 +349,7 @@ export const QiblaView: React.FC<QiblaViewProps> = ({ onShowToast }) => {
             </p>
 
             {/* Visual SVG Compass */}
-            <div className="relative mx-auto my-2 flex w-[min(100%,17.5rem)] h-[min(100%,17.5rem)] max-w-full aspect-square items-center justify-center sm:h-80 sm:w-80">
+            <div className="mobile-landscape-compass relative mx-auto my-2 flex w-[min(100%,17.5rem)] h-[min(100%,17.5rem)] max-w-full aspect-square items-center justify-center sm:h-72 sm:w-72 lg:h-80 lg:w-80">
               {/* Top Reference Pointer */}
               <div className="absolute -top-3 z-20 flex flex-col items-center">
                 <div className="rounded bg-[#035328] px-2 py-0.5 text-[9px] min-[360px]:text-[10px] font-bold text-white whitespace-nowrap">
@@ -561,7 +561,7 @@ export const QiblaView: React.FC<QiblaViewProps> = ({ onShowToast }) => {
         </div>
 
         {/* Right Column: Explicit Geolocation, Preset Cities & Manual Coordinate Form */}
-        <div className="space-y-5 lg:col-span-6">
+        <div className="space-y-5 md:col-span-6">
           {/* 1. Geolocation Permission Card */}
           <div className="rounded-2xl border border-[#E3E9E3] bg-white p-5">
             <div className="flex items-center justify-between gap-3 mb-3">

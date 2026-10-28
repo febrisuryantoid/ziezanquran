@@ -175,7 +175,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           paddingTop: 'var(--safe-top)',
         }}
       >
-        <div className="container-app h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4 min-w-0">
+        <div className="container-app mobile-landscape-compact-header h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4 min-w-0">
           {/* Left: Brand Logo & Title */}
           <button
             type="button"
@@ -305,7 +305,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 w-full sm:max-w-md bg-white p-5 sm:p-6 shadow-2xl border-t border-x"
+              className="relative z-10 w-full sm:max-w-md max-h-[88dvh] overflow-y-auto bg-white p-5 sm:p-6 shadow-2xl border-t border-x"
               style={{
                 borderColor: 'var(--color-border)',
                 borderTopLeftRadius: 'var(--radius-card)',
@@ -397,12 +397,12 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
   return (
     <nav
       aria-label="Navigasi Utama Mobile"
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white border-t border-[#E3E9E3] shadow-[0_-2px_10px_rgba(3,83,40,0.04)] pointer-events-auto"
+      className="mobile-landscape-bottom-nav fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white border-t border-[#E3E9E3] shadow-[0_-2px_10px_rgba(3,83,40,0.04)] pointer-events-auto"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="mx-auto max-w-xl grid grid-cols-5 items-stretch px-0.5 min-[360px]:px-1">
+      <div className="w-full grid grid-cols-5 items-stretch px-1 sm:px-4 md:px-8">
         {MOBILE_BOTTOM_NAV_ITEMS.map((item) => {
           const isActive = item.isActiveMatch(activeTab);
           return (
@@ -412,7 +412,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
               onClick={() => onSelectTab(item.id)}
               aria-label={item.ariaLabel}
               aria-current={isActive ? 'page' : undefined}
-              className={`relative min-h-[52px] min-[360px]:min-h-[56px] min-w-[40px] py-1 min-[360px]:py-1.5 px-0.5 flex flex-col items-center justify-center gap-0.5 min-[360px]:gap-1 transition-colors focus:outline-none cursor-pointer ${
+              className={`mobile-landscape-nav-item relative min-h-[52px] min-[360px]:min-h-[56px] min-w-[40px] py-1 min-[360px]:py-1.5 px-0.5 flex flex-col items-center justify-center gap-0.5 min-[360px]:gap-1 transition-colors focus:outline-none cursor-pointer ${
                 isActive
                   ? 'text-[#046D38]'
                   : 'text-[#68756C] hover:text-[#24352B]'
@@ -437,7 +437,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
               </span>
 
               <span
-                className={`text-[9.5px] min-[360px]:text-[11px] leading-tight tracking-tight whitespace-nowrap truncate max-w-[56px] min-[360px]:max-w-[64px] text-center ${
+                className={`mobile-landscape-nav-label text-[9.5px] min-[360px]:text-[11px] leading-tight tracking-tight whitespace-nowrap truncate max-w-[56px] min-[360px]:max-w-[64px] text-center ${
                   isActive ? 'font-bold text-[#046D38]' : 'font-medium text-[#68756C]'
                 }`}
               >

@@ -274,7 +274,7 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3.5">
             {filteredJuzList.map((item) => (
               <button
                 key={item.juz}
@@ -315,7 +315,7 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
         )
       ) : /* DIRECTORY MODE: 114 SURAH */
       isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3.5">
           {Array.from({ length: 15 }).map((_, i) => (
             <div
               key={i}
@@ -337,7 +337,7 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3.5">
           {filteredSurahs.map((surah) => {
             const isPlayingThis =
               playback?.isPlaying &&

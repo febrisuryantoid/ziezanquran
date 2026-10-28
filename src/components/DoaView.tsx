@@ -455,7 +455,7 @@ export const DoaView: React.FC<DoaViewProps> = ({
       )}
 
       {/* Doa Cards List */}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-5 items-stretch">
         {displayedDoas.map((doa) => {
           const isFav = favoriteIds.includes(doa.id);
           const isCopied = copiedId === doa.id;
@@ -463,7 +463,7 @@ export const DoaView: React.FC<DoaViewProps> = ({
           return (
             <article
               key={doa.id}
-              className="rounded-2xl border border-[#E3E9E3] bg-white p-4 sm:p-6 transition-colors hover:border-[#046D38]/50"
+              className="rounded-2xl border border-[#E3E9E3] bg-white p-4 sm:p-6 transition-colors hover:border-[#046D38]/50 flex flex-col justify-between h-full"
             >
               {/* Card Top Bar */}
               <div className="flex flex-col gap-3 border-b border-[#E3E9E3] pb-3.5 sm:flex-row sm:items-start sm:justify-between">

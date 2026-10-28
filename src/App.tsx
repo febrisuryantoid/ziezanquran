@@ -21,6 +21,7 @@ import {
   OfflineManagerModal,
   OfflineStatusBanner,
 } from './components/OfflineManagerModal';
+import { OrientationGuard } from './components/OrientationGuard';
 import { QiblaView } from './components/QiblaView';
 import { SearchView } from './components/SearchView';
 import { SettingsView } from './components/SettingsView';
@@ -1267,42 +1268,46 @@ export default function App() {
   const isReaderView = activeTab === 'reader';
 
   return (
-    <div
-      className={`min-h-screen min-h-[100dvh] flex flex-col ${
-        playback
-          ? isReaderView
-            ? 'pb-48'
-            : 'pb-64 lg:pb-48'
-          : isReaderView
-            ? 'pb-12'
-            : 'pb-24 lg:pb-12'
-      }`}
-      style={{ backgroundColor: 'var(--color-bg-page)' }}
-    >
-      {/* Premium Animated Splash Screen */}
-      <SplashScreen isVisible={showSplash} />
+    <>
+      {/* Reusable Full-Viewport Orientation Guard (Mobile Landscape & Desktop Portrait) */}
+      <OrientationGuard />
 
-      {/* Hidden Global Audio Elements (Murottal & Adzan) */}
-      <audio ref={audioRef} preload="metadata" />
-      <audio ref={adzanAudioRef} preload="auto" />
+      <div
+        className={`app-viewport-shell w-full min-h-screen min-h-[100dvh] flex flex-col ${
+          playback
+            ? isReaderView
+              ? 'pb-48'
+              : 'pb-64 lg:pb-48'
+            : isReaderView
+              ? 'pb-12'
+              : 'pb-24 lg:pb-12'
+        }`}
+        style={{ backgroundColor: 'var(--color-bg-page)' }}
+      >
+        {/* Premium Animated Splash Screen */}
+        <SplashScreen isVisible={showSplash} />
 
-      {/* Top Navigation Brand Bar (Hidden on Surah Reader Detail View) */}
-      <Navbar
-        activeTab={activeTab}
-        onSelectTab={(tab) => handleSelectTab(tab)}
-        lastRead={lastRead}
-        onContinueReading={() =>
-          lastRead
-            ? loadSurahForReader(lastRead.surahNomor, lastRead.ayatNomor)
-            : loadSurahForReader(1, 1)
-        }
-      />
+        {/* Hidden Global Audio Elements (Murottal & Adzan) */}
+        <audio ref={audioRef} preload="metadata" />
+        <audio ref={adzanAudioRef} preload="auto" />
 
-      {/* Offline-First Preparation Progress, Update & Connectivity Status Banner */}
-      <OfflineStatusBanner onOpenModal={() => setOfflineModalOpen(true)} />
+        {/* Top Navigation Brand Bar (Hidden on Surah Reader Detail View) */}
+        <Navbar
+          activeTab={activeTab}
+          onSelectTab={(tab) => handleSelectTab(tab)}
+          lastRead={lastRead}
+          onContinueReading={() =>
+            lastRead
+              ? loadSurahForReader(lastRead.surahNomor, lastRead.ayatNomor)
+              : loadSurahForReader(1, 1)
+          }
+        />
 
-      {/* Main Content Area */}
-      <main className="flex-1 min-w-0">
+        {/* Offline-First Preparation Progress, Update & Connectivity Status Banner */}
+        <OfflineStatusBanner onOpenModal={() => setOfflineModalOpen(true)} />
+
+        {/* Main Content Area */}
+        <main className="flex-1 w-full min-w-0 min-h-0 flex flex-col">
         {activeTab === 'home' && (
           <HomeView
             surahs={surahs}
@@ -1449,23 +1454,25 @@ export default function App() {
 
       {/* Minimal Quiet Footer with Semantic Attribution for Febri Suryanto & Ziezan Solutions */}
       <footer
-        className="container-app py-4 border-t text-center text-fluid-xs"
+        className="w-full border-t"
         style={{
           borderColor: 'var(--color-border)',
           color: 'var(--color-text-secondary)',
         }}
       >
-        <span>
-          &copy; {new Date().getFullYear()}{' '}
-          <strong style={{ color: 'var(--color-text-primary)' }}>{APP_CONFIG.appName}</strong>
-          {' · '}
-          Dikembangkan oleh{' '}
-          <strong style={{ color: 'var(--color-text-primary)' }}>
-            {APP_INFO.developerName}
-          </strong>{' '}
-          ({APP_INFO.developerRole},{' '}
-          <strong style={{ color: 'var(--color-primary)' }}>{APP_INFO.agencyName}</strong>)
-        </span>
+        <div className="container-app py-4 text-center text-fluid-xs">
+          <span>
+            &copy; {new Date().getFullYear()}{' '}
+            <strong style={{ color: 'var(--color-text-primary)' }}>{APP_CONFIG.appName}</strong>
+            {' · '}
+            Dikembangkan oleh{' '}
+            <strong style={{ color: 'var(--color-text-primary)' }}>
+              {APP_INFO.developerName}
+            </strong>{' '}
+            ({APP_INFO.developerRole},{' '}
+            <strong style={{ color: 'var(--color-primary)' }}>{APP_INFO.agencyName}</strong>)
+          </span>
+        </div>
       </footer>
 
       {/* Offline-First & PWA Control Center Modal */}
@@ -1495,10 +1502,10 @@ export default function App() {
 
       {/* Non-Overlapping Floating Stack Above Bottom Navbar: Toast + AudioMiniPlayer */}
       <div
-        className={`fixed left-0 right-0 z-40 pointer-events-none flex flex-col items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 ${
+        className={`fixed left-0 right-0 z-40 pointer-events-none flex flex-col items-center gap-2 sm:gap-2.5 container-app ${
           isReaderView
             ? 'bottom-2'
-            : 'bottom-[calc(64px+env(safe-area-inset-bottom,0px))] lg:bottom-3'
+            : 'mobile-landscape-floating-stack bottom-[calc(64px+env(safe-area-inset-bottom,0px))] lg:bottom-3'
         }`}
       >
         {/* 1. Notification Toast Layer — Centered, Proportional & Never Overlaps */}
@@ -1666,13 +1673,14 @@ export default function App() {
         />
       </div>
 
-      {/* 3. Native-Style Fixed Bottom Navigation Bar (Mobile & Tablet < 1024px) */}
-      <FloatingBottomNav
-        activeTab={activeTab}
-        onSelectTab={(tab) => handleSelectTab(tab)}
-        bookmarksCount={bookmarks.length}
-      />
-    </div>
+        {/* 3. Native-Style Fixed Bottom Navigation Bar (Mobile & Tablet < 1024px) */}
+        <FloatingBottomNav
+          activeTab={activeTab}
+          onSelectTab={(tab) => handleSelectTab(tab)}
+          bookmarksCount={bookmarks.length}
+        />
+      </div>
+    </>
   );
 }
 

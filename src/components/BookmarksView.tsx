@@ -258,7 +258,7 @@ export const BookmarksView: React.FC<BookmarksViewProps> = ({
 
       {/* Bookmarks List */}
       {section === 'BOOKMARKS' && (
-        <div className="space-y-3">
+        <div className={filteredBookmarks.length > 0 ? 'grid grid-cols-1 xl:grid-cols-2 gap-3.5 items-start' : 'space-y-3'}>
           {filteredBookmarks.length === 0 ? (
             <div className="card-surface !p-8 text-center space-y-1.5">
               <p className="text-sm sm:text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
@@ -338,7 +338,7 @@ export const BookmarksView: React.FC<BookmarksViewProps> = ({
 
       {/* Personal Notes List */}
       {section === 'NOTES' && (
-        <div className="space-y-3">
+        <div className={filteredNotes.length > 0 ? 'grid grid-cols-1 xl:grid-cols-2 gap-3.5 items-start' : 'space-y-3'}>
           {filteredNotes.length === 0 ? (
             <div className="card-surface !p-8 text-center space-y-1.5">
               <p className="text-sm sm:text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>

@@ -344,8 +344,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
         />
       </div>
 
-      {/* MAIN CONTENT CONTAINER */}
-      <div className="relative z-10 mx-auto w-full max-w-md md:max-w-3xl lg:max-w-5xl px-3.5 sm:px-6 pt-3 sm:pt-5 pb-8 space-y-4 sm:space-y-5">
+      {/* MAIN CONTENT CONTAINER - Full-Viewport Responsive Width */}
+      <div className="relative z-10 container-app pt-3 sm:pt-5 pb-8 space-y-4 sm:space-y-5">
         {/* Voice Search Feedback Banner */}
         {voiceToast && (
           <div className="bg-[#035328] text-white px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-lg animate-fade-in">
@@ -404,76 +404,78 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </button>
           </div>
 
-          {/* Greeting & Hijri Date Card */}
-          <div className="pt-1 sm:pt-2 max-w-[270px] sm:max-w-md">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#14261C] leading-tight tracking-tight drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]">
-              Assalamu’alaikum
-            </h2>
-            <p className="text-xs sm:text-sm font-medium text-[#24352B] mt-1 leading-snug drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]">
-              Semoga hari ini penuh dengan ilmu, iman dan amal yang bermanfaat.
-            </p>
+          {/* Greeting & Hijri Date + Quick Search (Side-by-Side in Mobile Landscape) */}
+          <div className="mobile-landscape-hero-grid space-y-3.5 sm:space-y-4">
+            <div className="pt-1 sm:pt-2 max-w-[300px] sm:max-w-xl lg:max-w-2xl">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#14261C] leading-tight tracking-tight drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]">
+                Assalamu’alaikum
+              </h2>
+              <p className="text-xs sm:text-sm font-medium text-[#24352B] mt-1 leading-snug drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]">
+                Semoga hari ini penuh dengan ilmu, iman dan amal yang bermanfaat.
+              </p>
 
-            <button
-              type="button"
-              onClick={() => onSelectTab('hijri')}
-              className="mt-3 inline-flex items-center gap-2.5 rounded-2xl bg-white/85 hover:bg-white/95 backdrop-blur-md border border-white/90 px-3.5 py-2.5 shadow-sm text-left transition-all cursor-pointer"
-            >
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#046D38] shrink-0" />
-              <div>
-                <p className="text-xs sm:text-sm font-bold text-[#14261C] leading-tight">
-                  {hijriDateStr}
-                </p>
-                <p className="text-[11px] text-[#68756C] mt-0.5 font-medium">
-                  {gregorianDateStr}
-                </p>
-              </div>
-            </button>
-          </div>
-        </section>
-
-        {/* B. SEARCH BAR & TARGETED SPEAK TO TEXT BUTTON */}
-        <section className="pt-1">
-          <form onSubmit={handleQuickSearchSubmit}>
-            <div className="flex items-center bg-white/95 backdrop-blur-md rounded-full border border-white shadow-[0_6px_24px_rgba(3,83,40,0.12)] p-1.5 pl-4 pr-1.5 focus-within:ring-2 focus-within:ring-[#046D38]/30 transition-all">
-              <Search className="w-5 h-5 text-[#68756C] shrink-0 mr-2.5" />
-              <input
-                type="text"
-                value={quickSearch}
-                onChange={(e) => setQuickSearch(e.target.value)}
-                placeholder="Cari surat, ayat, atau kata kunci..."
-                aria-label="Cari surat, ayat, atau kata kunci"
-                className="w-full bg-transparent text-xs sm:text-sm text-[#24352B] placeholder:text-[#68756C] focus:outline-none py-1.5"
-              />
-              {quickSearch && (
-                <button
-                  type="button"
-                  onClick={() => setQuickSearch('')}
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-[#68756C] hover:bg-stone-100 mr-1 cursor-pointer"
-                  aria-label="Bersihkan pencarian"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-              {/* TARGETED SPEAK TO TEXT MICROPHONE BUTTON */}
               <button
                 type="button"
-                onClick={handleVoiceSearch}
-                aria-label={isListeningVoice ? 'Hentikan perekaman suara' : 'Tekan untuk bicara (Pencarian Suara Al-Qur\'an)'}
-                title={isListeningVoice ? 'Hentikan suara' : 'Pencarian Suara (Speak to Text)'}
-                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all transform active:scale-95 shadow-sm cursor-pointer ${
-                  isListeningVoice
-                    ? 'relative bg-[#E53935] text-white ring-4 ring-[#E53935]/40 animate-pulse'
-                    : 'bg-[#046D38] hover:bg-[#035328] text-white'
-                }`}
+                onClick={() => onSelectTab('hijri')}
+                className="mt-3 inline-flex items-center gap-2.5 rounded-2xl bg-white/85 hover:bg-white/95 backdrop-blur-md border border-white/90 px-3.5 py-2.5 shadow-sm text-left transition-all cursor-pointer"
               >
-                {isListeningVoice ? (
-                  <MicOff className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                ) : (
-                  <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                )}
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#046D38] shrink-0" />
+                <div>
+                  <p className="text-xs sm:text-sm font-bold text-[#14261C] leading-tight">
+                    {hijriDateStr}
+                  </p>
+                  <p className="text-[11px] text-[#68756C] mt-0.5 font-medium">
+                    {gregorianDateStr}
+                  </p>
+                </div>
               </button>
             </div>
-          </form>
+
+            {/* B. SEARCH BAR & TARGETED SPEAK TO TEXT BUTTON */}
+            <div className="pt-1">
+              <form onSubmit={handleQuickSearchSubmit}>
+                <div className="flex items-center bg-white/95 backdrop-blur-md rounded-full border border-white shadow-[0_6px_24px_rgba(3,83,40,0.12)] p-1.5 pl-4 pr-1.5 focus-within:ring-2 focus-within:ring-[#046D38]/30 transition-all">
+                  <Search className="w-5 h-5 text-[#68756C] shrink-0 mr-2.5" />
+                  <input
+                    type="text"
+                    value={quickSearch}
+                    onChange={(e) => setQuickSearch(e.target.value)}
+                    placeholder="Cari surat, ayat, atau kata kunci..."
+                    aria-label="Cari surat, ayat, atau kata kunci"
+                    className="w-full bg-transparent text-xs sm:text-sm text-[#24352B] placeholder:text-[#68756C] focus:outline-none py-1.5"
+                  />
+                  {quickSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setQuickSearch('')}
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-[#68756C] hover:bg-stone-100 mr-1 cursor-pointer"
+                      aria-label="Bersihkan pencarian"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {/* TARGETED SPEAK TO TEXT MICROPHONE BUTTON */}
+                  <button
+                    type="button"
+                    onClick={handleVoiceSearch}
+                    aria-label={isListeningVoice ? 'Hentikan perekaman suara' : 'Tekan untuk bicara (Pencarian Suara Al-Qur\'an)'}
+                    title={isListeningVoice ? 'Hentikan suara' : 'Pencarian Suara (Speak to Text)'}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all transform active:scale-95 shadow-sm cursor-pointer ${
+                      isListeningVoice
+                        ? 'relative bg-[#E53935] text-white ring-4 ring-[#E53935]/40 animate-pulse'
+                        : 'bg-[#046D38] hover:bg-[#035328] text-white'
+                    }`}
+                  >
+                    {isListeningVoice ? (
+                      <MicOff className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    ) : (
+                      <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </section>
 
         {/* C. SHORTCUT TEMATIK (5 ITEM: Sabar, Tenang, Syukur, Rezeki, Ampunan) */}
@@ -546,8 +548,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
+        {/* D & E. KARTU JADWAL SALAT & KARTU LANJUTKAN MEMBACA (Stacked on Mobile/Tablet Portrait, Side-by-Side Full-Width on Mobile Landscape, Tablet Landscape & Desktop) */}
+        <div className="mobile-landscape-dashboard-grid grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
         {/* D. KARTU JADWAL SALAT */}
-        <section className="bg-white/92 backdrop-blur-md rounded-[26px] border border-white/95 p-3.5 sm:p-5 shadow-[0_8px_30px_rgba(3,83,40,0.08)] space-y-3">
+        <section className="mobile-landscape-col-7 lg:col-span-7 bg-white/92 backdrop-blur-md rounded-[26px] border border-white/95 p-3.5 sm:p-5 shadow-[0_8px_30px_rgba(3,83,40,0.08)] flex flex-col justify-between space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="w-10 h-10 rounded-full bg-[#EDF5F0] flex items-center justify-center shrink-0">
@@ -716,15 +720,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         {/* E. KARTU LANJUTKAN MEMBACA */}
         <section
-          className="rounded-[26px] p-4 sm:p-5 text-white border border-[#FBC647]/30 shadow-[0_8px_28px_rgba(3,83,40,0.18)] relative overflow-hidden"
+          className="mobile-landscape-col-5 lg:col-span-5 rounded-[26px] p-4 sm:p-5 text-white border border-[#FBC647]/30 shadow-[0_8px_28px_rgba(3,83,40,0.18)] relative overflow-hidden flex flex-col justify-between"
           style={{
             background: 'linear-gradient(135deg, #064E28 0%, #033A1D 100%)',
           }}
         >
           <div className="absolute right-0 top-0 bottom-0 w-[46%] sm:w-[42%] pointer-events-none overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=600&q=80"
-              alt="Al-Qur'an dan Tasbih"
+              src={BG_LANDSCAPE_PATH}
+              alt="Al-Qur'an dan Masjid"
               className="w-full h-full object-cover object-center opacity-85"
             />
             <div
@@ -736,7 +740,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             />
           </div>
 
-          <div className="relative z-10 space-y-3">
+          <div className="relative z-10 flex flex-col justify-between h-full space-y-3">
             <div className="flex items-start gap-2.5">
               <BookOpen className="w-6 h-6 text-[#FBC647] shrink-0 mt-0.5" />
               <div>
@@ -784,6 +788,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
         </section>
+        </div>
 
         {/* F. FITUR PILIHAN */}
         <section className="space-y-2.5 pt-1">
@@ -801,7 +806,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 min-[360px]:grid-cols-4 gap-2 sm:gap-3.5 lg:gap-4">
             <button
               type="button"
               onClick={() => onNavigateToSurahList('SURAH')}
@@ -933,7 +938,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             aria-hidden="true"
           />
 
-          <div className="relative z-10 w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#E3E9E3] p-5 sm:p-6 max-h-[90vh] overflow-y-auto space-y-4">
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#E3E9E3] p-5 sm:p-6 max-h-[88dvh] overflow-y-auto space-y-4">
             {/* Drawer Header */}
             <div className="flex items-center justify-between border-b border-[#E3E9E3] pb-3.5">
               <div className="flex items-center gap-2.5">
