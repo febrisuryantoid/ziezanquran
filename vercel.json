@@ -4,7 +4,6 @@
   "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "cleanUrls": true,
   "headers": [
     {
       "source": "/(.*)",
@@ -36,7 +35,7 @@
       ]
     },
     {
-      "source": "/(sw\\.js|workbox-.*\\.js|manifest\\.webmanifest)",
+      "source": "/(sw\\.js|workbox-.*\\.js|manifest\\.webmanifest|manifest\\.json)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -74,9 +73,22 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/|icons/|audio/|assets/|robots\\.txt|sitemap\\.xml|llms\\.txt|manifest\\.webmanifest|favicon\\.png|icon\\.svg|apple-touch-icon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|pwa-maskable-512x512\\.png|sw\\.js|workbox-.*).*)",
+      "source": "/(kiblat|qibla|arah-kiblat|shalat|salat|jadwal-shalat|jadwal-salat|adzan|doa|dzikir|surat|mushaf|quran|hijriah|hijri|kalender-hijriah|bookmark|bookmarks|tersimpan|cari|search|lainnya|more|pengaturan|settings|tentang|about)/?",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/surat/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/((?!api/|icons/|audio/|assets/|robots\\.txt|sitemap\\.xml|llms\\.txt|manifest\\.webmanifest|manifest\\.json|favicon\\.png|icon\\.svg|apple-touch-icon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|pwa-maskable-512x512\\.png|sw\\.js|workbox-.*).*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
+
 

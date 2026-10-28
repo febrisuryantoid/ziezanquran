@@ -96,7 +96,11 @@ export function tabToPath(
  * Fully supports clean paths, direct Vercel links, and backwards-compatible legacy query params (?tab=..., ?surah=...&ayat=...).
  */
 export function pathToState(pathname: string, search: string): RouteResolution {
-  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+  const normalizedPath =
+    pathname
+      .replace(/\/index\.html$/i, '')
+      .replace(/\/+$/, '')
+      .toLowerCase() || '/';
   const params = new URLSearchParams(search);
 
   // 1. Direct Ayat Deep-links: /surat/ayat/:ayatNomor (e.g. /surat/ayat/1)
@@ -144,7 +148,11 @@ export function pathToState(pathname: string, search: string): RouteResolution {
   }
 
   // 4. Clean Path Matches
-  if (normalizedPath === '/surat') {
+  if (
+    normalizedPath === '/surat' ||
+    normalizedPath === '/mushaf' ||
+    normalizedPath === '/quran'
+  ) {
     // If query has ayat/surah, treat as reader
     const surahParam = parseInt(params.get('surah') || '', 10);
     const ayatParam = parseInt(params.get('ayat') || '', 10);
@@ -159,19 +167,33 @@ export function pathToState(pathname: string, search: string): RouteResolution {
     return { tab: 'surah-list' };
   }
 
-  if (normalizedPath === '/shalat') {
+  if (
+    normalizedPath === '/shalat' ||
+    normalizedPath === '/salat' ||
+    normalizedPath === '/jadwal-shalat' ||
+    normalizedPath === '/jadwal-salat' ||
+    normalizedPath === '/adzan'
+  ) {
     return { tab: 'shalat' };
   }
 
-  if (normalizedPath === '/doa') {
+  if (normalizedPath === '/doa' || normalizedPath === '/dzikir') {
     return { tab: 'doa' };
   }
 
-  if (normalizedPath === '/kiblat' || normalizedPath === '/qibla') {
+  if (
+    normalizedPath === '/kiblat' ||
+    normalizedPath === '/qibla' ||
+    normalizedPath === '/arah-kiblat'
+  ) {
     return { tab: 'qibla' };
   }
 
-  if (normalizedPath === '/hijriah' || normalizedPath === '/hijri') {
+  if (
+    normalizedPath === '/hijriah' ||
+    normalizedPath === '/hijri' ||
+    normalizedPath === '/kalender-hijriah'
+  ) {
     return { tab: 'hijri' };
   }
 

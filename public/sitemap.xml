@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://quran.ziezan.id/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://quran.ziezan.id/surat/</loc><changefreq>weekly</changefreq><priority>0.98</priority></url>
+  <url><loc>https://quran.ziezan.id/shalat/</loc><changefreq>daily</changefreq><priority>0.96</priority></url>
+  <url><loc>https://quran.ziezan.id/kiblat/</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://quran.ziezan.id/doa/</loc><changefreq>weekly</changefreq><priority>0.95</priority></url>
+  <url><loc>https://quran.ziezan.id/hijriah/</loc><changefreq>daily</changefreq><priority>0.94</priority></url>
+  <url><loc>https://quran.ziezan.id/cari/</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
+  <url><loc>https://quran.ziezan.id/tentang/</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
   <url><loc>https://quran.ziezan.id/?surah=2&amp;ayat=255</loc><changefreq>weekly</changefreq><priority>0.98</priority></url>
   <url><loc>https://quran.ziezan.id/?surah=2&amp;ayat=285</loc><changefreq>weekly</changefreq><priority>0.95</priority></url>
   <url><loc>https://quran.ziezan.id/?surah=2&amp;ayat=201</loc><changefreq>weekly</changefreq><priority>0.92</priority></url>

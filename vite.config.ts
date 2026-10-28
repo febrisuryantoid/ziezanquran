@@ -1,12 +1,74 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const STATIC_SPA_ROUTES = [
+  'kiblat',
+  'qibla',
+  'arah-kiblat',
+  'shalat',
+  'salat',
+  'jadwal-shalat',
+  'jadwal-salat',
+  'adzan',
+  'doa',
+  'dzikir',
+  'surat',
+  'mushaf',
+  'quran',
+  'hijriah',
+  'hijri',
+  'kalender-hijriah',
+  'bookmark',
+  'bookmarks',
+  'tersimpan',
+  'cari',
+  'search',
+  'lainnya',
+  'more',
+  'pengaturan',
+  'settings',
+  'tentang',
+  'about',
+];
+
+/**
+ * Generates static `<route>/index.html` and `404.html` copies inside `dist/`
+ * after the Vite build completes so that Vercel Edge (and any static host)
+ * resolves direct requests like `https://quran.ziezan.id/kiblat/` at the
+ * filesystem level with HTTP 200 OK in addition to `vercel.json` rewrites.
+ */
+function ziezanSpaStaticRoutesPlugin(): Plugin {
+  return {
+    name: 'ziezan-spa-static-routes',
+    apply: 'build',
+    enforce: 'post',
+    closeBundle() {
+      const distDir = path.resolve(__dirname, 'dist');
+      const indexHtmlPath = path.join(distDir, 'index.html');
+      if (!fs.existsSync(indexHtmlPath)) return;
+
+      const htmlContent = fs.readFileSync(indexHtmlPath, 'utf-8');
+
+      // 1. Emit dist/404.html fallback
+      fs.writeFileSync(path.join(distDir, '404.html'), htmlContent, 'utf-8');
+
+      // 2. Emit dist/<route>/index.html for all primary clean routes
+      for (const route of STATIC_SPA_ROUTES) {
+        const routeDir = path.join(distDir, route);
+        fs.mkdirSync(routeDir, { recursive: true });
+        fs.writeFileSync(path.join(routeDir, 'index.html'), htmlContent, 'utf-8');
+      }
+    },
+  };
+}
 
 export default defineConfig(() => {
   return {
@@ -41,7 +103,7 @@ export default defineConfig(() => {
           background_color: '#035328',
           display: 'standalone',
           display_override: ['standalone', 'window-controls-overlay', 'minimal-ui'],
-          orientation: 'portrait-primary',
+          orientation: 'any',
           start_url: '/',
           scope: '/',
           lang: 'id',
@@ -108,8 +170,19 @@ export default defineConfig(() => {
         workbox: {
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,wav,woff,woff2,txt,xml,webmanifest}'],
+          globIgnores: [
+            '**/404.html',
+            ...STATIC_SPA_ROUTES.map((route) => `**/${route}/index.html`),
+          ],
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api\//],
+          navigateFallbackDenylist: [
+            /^\/api\//,
+            /^\/robots\.txt$/,
+            /^\/sitemap\.xml$/,
+            /^\/llms\.txt$/,
+            /^\/manifest\.webmanifest$/,
+            /^\/manifest\.json$/,
+          ],
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
@@ -208,6 +281,7 @@ export default defineConfig(() => {
           type: 'module',
         },
       }),
+      ziezanSpaStaticRoutesPlugin(),
     ],
     build: {
       sourcemap: false,
@@ -238,3 +312,4 @@ export default defineConfig(() => {
     },
   };
 });
+
