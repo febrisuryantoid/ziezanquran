@@ -16,8 +16,9 @@ import { DoaView } from './components/DoaView';
 import { HijriCalendarView } from './components/HijriCalendarView';
 import { HomeView } from './components/HomeView';
 import { MicrophoneModal } from './components/MicrophoneModal';
-import { AboutView, MoreView } from './components/MoreView';
+import { AboutView, MoreModal } from './components/MoreView';
 import { FloatingBottomNav, Navbar } from './components/Navbar';
+import { NotFoundView } from './components/NotFoundView';
 import {
   OfflineManagerModal,
   OfflineStatusBanner,
@@ -44,9 +45,13 @@ import { useOnlineStatus } from './hooks/useOnlineStatus';
 import {
   ADZAN_AUDIO_STREAMS,
   clampVolume,
+  createBackgroundTickerWorker,
   evaluateScheduleForTrigger,
   getLocalDateIso,
   pruneTriggeredEvents,
+  resolvePrayerAudioSource,
+  syncShalatScheduleToServiceWorker,
+  unlockAndPrimeBackgroundAudio,
 } from './services/adzanAudioService';
 import { equranShalatApi } from './services/islamicApi';
 import { offlineSyncService } from './services/offlineSyncService';
@@ -84,6 +89,8 @@ export default function App() {
 
   // Navigation & View State
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+  const [invalidRoutePath, setInvalidRoutePath] = useState<string>('');
+  const [aboutFocusSection, setAboutFocusSection] = useState<'top' | 'address'>('top');
   const [surahListMode, setSurahListMode] = useState<'SURAH' | 'JUZ'>('SURAH');
   const [selectedSurahNomor, setSelectedSurahNomor] = useState<number>(1);
   const [targetAyatNomor, setTargetAyatNomor] = useState<number | null>(null);
@@ -102,6 +109,7 @@ export default function App() {
   const [cachedSurahCount, setCachedSurahCount] = useState<number>(0);
   const [offlineModalOpen, setOfflineModalOpen] = useState<boolean>(false);
   const [micModalOpen, setMicModalOpen] = useState<boolean>(false);
+  const [moreModalOpen, setMoreModalOpen] = useState<boolean>(false);
 
   // Tafsir Modal State
   const [tafsirModalOpen, setTafsirModalOpen] = useState<boolean>(false);
@@ -229,7 +237,13 @@ export default function App() {
   }, []);
 
   // Navigate to a tab and push browser history entry with clean path URLs
+  // Selecting 'more' opens the bottom-to-top MoreModal popup instead of navigating to /lainnya/
   const handleSelectTab = useCallback((nextTab: ActiveTab, pushHistory = true) => {
+    if (nextTab === 'more') {
+      setMoreModalOpen((prev) => !prev);
+      return;
+    }
+    setMoreModalOpen(false);
     setActiveTab(nextTab);
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -339,6 +353,9 @@ export default function App() {
           setSearchInitialQuery(route.searchQuery.slice(0, 120));
         }
         setActiveTab('search');
+      } else if (route.tab === 'not-found') {
+        setInvalidRoutePath(route.invalidPath || window.location.pathname);
+        setActiveTab('not-found');
       } else {
         setActiveTab(route.tab);
       }
@@ -376,16 +393,10 @@ export default function App() {
     setAdzanPlayback(null);
   }, []);
 
-  // Prime audio element on first user interaction to unlock browser autoplay policy
+  // Prime audio element on first user interaction to unlock browser autoplay policy & background keep-alive
   useEffect(() => {
     const primeAudioElement = () => {
-      if (adzanAudioRef.current) {
-        try {
-          adzanAudioRef.current.load();
-        } catch {
-          // Ignore
-        }
-      }
+      unlockAndPrimeBackgroundAudio(adzanAudioRef.current);
     };
     window.addEventListener('pointerdown', primeAudioElement, { once: true, passive: true });
     window.addEventListener('keydown', primeAudioElement, { once: true, passive: true });
@@ -650,7 +661,7 @@ export default function App() {
     });
   }, [adzanPlayback, handlePlayAdzanAudio]);
 
-  // Active Foreground Prayer Reminder Checker (runs every 5s + on visibility/settings change)
+  // Active Foreground + Background Web Worker + Service Worker Prayer Reminder & Automatic Adzan Engine
   useEffect(() => {
     // Hydrate in-memory deduplication Set from persisted triggeredEvents
     const initialRem = storageService.getShalatReminders();
@@ -663,6 +674,38 @@ export default function App() {
       inMemoryTriggeredRef.current.add(initialRem.lastNotifiedKey);
     }
 
+    // Handle ?autoPlayAdzan= query parameter if launched from a background notification click
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const autoPlayKey = params.get('autoPlayAdzan') as PrayerTimeKey | null;
+        if (autoPlayKey) {
+          const rem = storageService.getShalatReminders();
+          const loc = storageService.getShalatLocation();
+          const audioSource = resolvePrayerAudioSource(autoPlayKey, rem.sound);
+          if (audioSource.primaryUrl) {
+            handlePlayAdzanAudio({
+              category: audioSource.category,
+              prayerKey: autoPlayKey,
+              label: audioSource.label,
+              locationLabel: `${loc.kabkota}, ${loc.provinsi}`,
+              primaryUrl: audioSource.primaryUrl,
+              fallbackUrl: audioSource.fallbackUrl,
+              isTest: false,
+              volume: rem.volume,
+            });
+          }
+          params.delete('autoPlayAdzan');
+          const nextSearch = params.toString();
+          const nextUrl =
+            window.location.pathname + (nextSearch ? `?${nextSearch}` : '');
+          window.history.replaceState(window.history.state, '', nextUrl);
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
     let isChecking = false;
 
     const checkPrayerReminder = async () => {
@@ -670,8 +713,6 @@ export default function App() {
       isChecking = true;
       try {
         const rem = storageService.getShalatReminders();
-        if (!rem.enabled) return;
-
         const loc = storageService.getShalatLocation();
         const now = new Date();
         const sched = await equranShalatApi.getMonthlySchedule(
@@ -682,10 +723,27 @@ export default function App() {
         );
 
         const todayIso = getLocalDateIso(now);
+        const tomorrowDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const tomorrowIso = getLocalDateIso(tomorrowDate);
+
         const todayRow =
           sched.jadwal.find((j) => j.tanggal_lengkap === todayIso) ||
           sched.jadwal.find((j) => j.tanggal === now.getDate());
-        if (!todayRow) return;
+        const tomorrowRow =
+          sched.jadwal.find((j) => j.tanggal_lengkap === tomorrowIso) || null;
+
+        // Always keep Service Worker schedule synced for background wakeups
+        if (todayRow) {
+          syncShalatScheduleToServiceWorker({
+            todayRow,
+            tomorrowRow,
+            provinsi: sched.provinsi || loc.provinsi,
+            kabkota: sched.kabkota || loc.kabkota,
+            settings: rem,
+          });
+        }
+
+        if (!rem.enabled || !todayRow) return;
 
         const trigger = evaluateScheduleForTrigger({
           todayRow,
@@ -713,10 +771,20 @@ export default function App() {
           nowMs
         );
 
-        storageService.saveShalatReminders({
+        const updatedSettings = {
           ...rem,
           lastNotifiedKey: trigger.exactKey,
           triggeredEvents: nextTriggeredEvents,
+        };
+        storageService.saveShalatReminders(updatedSettings);
+
+        // Update Service Worker with the newly recorded triggeredEvents
+        syncShalatScheduleToServiceWorker({
+          todayRow,
+          tomorrowRow,
+          provinsi: sched.provinsi || loc.provinsi,
+          kabkota: sched.kabkota || loc.kabkota,
+          settings: updatedSettings,
         });
 
         // 3. Visual Toast Notification
@@ -743,11 +811,18 @@ export default function App() {
           Notification.permission === 'granted'
         ) {
           const notifTitle = `Ziezan Quran — Waktu ${trigger.prayerLabel} (${trigger.scheduledTime})`;
-          const notifOptions: NotificationOptions = {
-            body: trigger.message,
+          const notifOptions: NotificationOptions & {
+            renotify?: boolean;
+            requireInteraction?: boolean;
+            vibrate?: number[];
+          } = {
+            body: `${trigger.message} Suara ${trigger.audioLabel} berkumandang otomatis.`,
             icon: '/icons/ziezan-quran.png',
             badge: '/icons/ziezan-quran.png',
             tag: trigger.slotKey,
+            renotify: true,
+            requireInteraction: true,
+            vibrate: [300, 150, 300, 150, 400],
           };
 
           if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
@@ -776,25 +851,108 @@ export default function App() {
     };
 
     checkPrayerReminder();
-    const interval = window.setInterval(checkPrayerReminder, 5000);
+    // Unthrottled Web Worker ticker so background tabs continue evaluating prayer times accurately
+    const stopTicker = createBackgroundTickerWorker(checkPrayerReminder, 4000);
 
     const handleVisibilityOrSettings = () => {
-      if (document.visibilityState === 'visible') {
-        checkPrayerReminder();
+      checkPrayerReminder();
+    };
+
+    // Listen to Service Worker background messages (e.g., periodicSync wakeup or notification action)
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      const data = event.data;
+      if (!data || typeof data !== 'object') return;
+
+      if (data.type === 'SW_STOP_ADZAN_AUDIO') {
+        handleStopAdzanAudio();
+        return;
+      }
+
+      if (data.type === 'SW_TRIGGER_ADZAN_AUDIO') {
+        const {
+          exactKey,
+          slotKey,
+          prayerKey,
+          scheduledTime,
+          locationLabel,
+          message,
+        } = data as {
+          exactKey?: string;
+          slotKey?: string;
+          prayerKey?: PrayerTimeKey;
+          scheduledTime?: string;
+          locationLabel?: string;
+          message?: string;
+        };
+
+        if (
+          exactKey &&
+          slotKey &&
+          inMemoryTriggeredRef.current.has(exactKey) &&
+          inMemoryTriggeredRef.current.has(slotKey)
+        ) {
+          return;
+        }
+
+        if (exactKey) inMemoryTriggeredRef.current.add(exactKey);
+        if (slotKey) inMemoryTriggeredRef.current.add(slotKey);
+
+        const rem = storageService.getShalatReminders();
+        const nowMs = Date.now();
+        const nextTriggeredEvents = pruneTriggeredEvents(
+          {
+            ...(rem.triggeredEvents || {}),
+            ...(exactKey ? { [exactKey]: nowMs } : {}),
+            ...(slotKey ? { [slotKey]: nowMs } : {}),
+          },
+          nowMs
+        );
+        storageService.saveShalatReminders({
+          ...rem,
+          lastNotifiedKey: exactKey || rem.lastNotifiedKey,
+          triggeredEvents: nextTriggeredEvents,
+        });
+
+        if (message) {
+          showToast(message);
+        }
+
+        if (prayerKey && rem.audioEnabled !== false && rem.sound !== 'mute') {
+          const audioSource = resolvePrayerAudioSource(prayerKey, rem.sound);
+          if (audioSource.primaryUrl) {
+            handlePlayAdzanAudio({
+              category: audioSource.category,
+              prayerKey,
+              label: audioSource.label,
+              locationLabel,
+              scheduledTime,
+              primaryUrl: audioSource.primaryUrl,
+              fallbackUrl: audioSource.fallbackUrl,
+              isTest: false,
+              volume: rem.volume,
+            });
+          }
+        }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityOrSettings);
     window.addEventListener('focus', handleVisibilityOrSettings);
     window.addEventListener('ziezan:shalat-settings-updated', checkPrayerReminder);
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    }
 
     return () => {
-      window.clearInterval(interval);
+      stopTicker();
       document.removeEventListener('visibilitychange', handleVisibilityOrSettings);
       window.removeEventListener('focus', handleVisibilityOrSettings);
       window.removeEventListener('ziezan:shalat-settings-updated', checkPrayerReminder);
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+      }
     };
-  }, [handlePlayAdzanAudio, showToast]);
+  }, [handlePlayAdzanAudio, handleStopAdzanAudio, showToast]);
 
 
   // Dynamic SEO, AIO, AEO & GEO Meta + Schema.org JSON-LD synchronization
@@ -1195,9 +1353,39 @@ export default function App() {
     }
   }, [playbackSpeed, playback?.audioUrl]);
 
-  // OS Lock-Screen & Bluetooth MediaSession API Integration for Production Audio
+  // OS Lock-Screen & Bluetooth MediaSession API Integration for Production Audio (Murottal & Adzan)
   useEffect(() => {
-    if (typeof navigator === 'undefined' || !('mediaSession' in navigator) || !playback) {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) {
+      return;
+    }
+
+    if (adzanPlayback && adzanPlayback.isPlaying) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: adzanPlayback.label,
+          artist: adzanPlayback.locationLabel || 'Pengingat Waktu Salat',
+          album: APP_CONFIG.appName,
+          artwork: [
+            {
+              src: BRAND_LOGO_PATH,
+              sizes: '512x512',
+              type: 'image/png',
+            },
+          ],
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          handleStopAdzanAudio();
+        });
+        navigator.mediaSession.setActionHandler('stop', () => {
+          handleStopAdzanAudio();
+        });
+      } catch {
+        // Ignore
+      }
+      return;
+    }
+
+    if (!playback) {
       return;
     }
     try {
@@ -1236,7 +1424,7 @@ export default function App() {
     } catch {
       // Ignore unsupported MediaSession environments
     }
-  }, [handleStepAyatAudio, playback]);
+  }, [adzanPlayback, handleStepAyatAudio, handleStopAdzanAudio, playback]);
 
   const handleToggleMiniPlayer = () => {
     const audio = audioRef.current;
@@ -1303,6 +1491,7 @@ export default function App() {
         {/* Top Navigation Brand Bar (Hidden on Surah Reader Detail View) */}
         <Navbar
           activeTab={activeTab}
+          isMoreModalOpen={moreModalOpen}
           onSelectTab={(tab) => handleSelectTab(tab)}
           lastRead={lastRead}
           onContinueReading={() =>
@@ -1338,6 +1527,13 @@ export default function App() {
             onNavigateToBookmarks={() => handleSelectTab('bookmarks')}
             onSelectTab={(tab) => handleSelectTab(tab)}
             onOpenMicrophone={() => setMicModalOpen(true)}
+            onActivateBackgroundAdzan={() =>
+              unlockAndPrimeBackgroundAudio(adzanAudioRef.current)
+            }
+            adzanPlayback={adzanPlayback}
+            onTestAdzanCategory={handleTestAdzanCategory}
+            onStopAdzanAudio={handleStopAdzanAudio}
+            onShowToast={showToast}
           />
         )}
 
@@ -1451,114 +1647,140 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'more' && (
-          <MoreView
-            onSelectTab={(tab) => handleSelectTab(tab)}
-            bookmarksCount={bookmarks.length}
-            notesCount={notes.length}
-            cachedSurahCount={cachedSurahCount}
-            onOpenOfflineModal={() => setOfflineModalOpen(true)}
-            onOpenMicrophoneModal={() => setMicModalOpen(true)}
+        {activeTab === 'about' && (
+          <AboutView
+            onBack={() => setMoreModalOpen(true)}
+            focusSection={aboutFocusSection}
           />
         )}
 
-        {activeTab === 'about' && (
-          <AboutView onBack={() => handleSelectTab('more')} />
+        {activeTab === 'not-found' && (
+          <NotFoundView
+            invalidPath={invalidRoutePath}
+            onBackToHome={() => handleSelectTab('home')}
+          />
         )}
       </main>
 
-      {/* Application Footer with Smooth Right-to-Left Partner Logo Auto-Slide & Attribution */}
+      {/* Minimalist, Responsive Application Footer */}
       <footer
-        className="w-full border-t bg-white/85 backdrop-blur-xs"
+        className="w-full border-t bg-white/95 backdrop-blur-xs"
         style={{
           borderColor: 'var(--color-border)',
           color: 'var(--color-text-secondary)',
         }}
       >
-        {/* Smooth Right-to-Left Auto-Sliding Partner Logos Marquee */}
-        <div
-          className="w-full py-3.5 sm:py-4 border-b"
-          style={{ borderColor: 'var(--color-border)' }}
-          aria-label="Mitra & Kolaborasi Kelembagaan"
-        >
-          <div className="container-app mb-2.5 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#035328]">
-              Didukung &amp; Berkolaborasi Bersama
-            </span>
-            <button
-              type="button"
-              onClick={() => handleSelectTab('about')}
-              className="text-[11px] font-semibold text-[#046D38] hover:underline cursor-pointer"
-            >
-              Lihat Alamat {YAYASAN_KPM_INFO.name} &rarr;
-            </button>
-          </div>
+        <div className="container-app py-6 sm:py-7 flex flex-col items-center text-center space-y-4">
+          {/* Identity & Navigation Links (Centered) */}
+          <div className="flex flex-col items-center text-center space-y-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <img
+                src={BRAND_LOGO_PATH}
+                alt={APP_CONFIG.appName}
+                className="w-6 h-6 object-contain shrink-0"
+                referrerPolicy="no-referrer"
+              />
+              <span className="font-display text-base sm:text-lg font-bold text-[#035328] tracking-tight">
+                {APP_CONFIG.appName}
+              </span>
+              <span className="text-[#C9D4CA]" aria-hidden="true">
+                |
+              </span>
+              <span className="text-xs sm:text-sm font-medium text-[#24352B]">
+                {YAYASAN_KPM_INFO.identityTagline}
+              </span>
+            </div>
 
-          <div className="ziezan-footer-marquee-mask">
-            <div className="ziezan-footer-marquee-track">
-              {[0, 1].map((halfIdx) => (
-                <div
-                  key={`marquee-half-${halfIdx}`}
-                  aria-hidden={halfIdx === 1}
-                  className="flex items-center gap-3.5 sm:gap-5 pr-3.5 sm:pr-5 shrink-0"
-                >
-                  {[...PARTNER_LOGOS, ...PARTNER_LOGOS, ...PARTNER_LOGOS, ...PARTNER_LOGOS].map(
-                    (partner, idx) => (
-                      <button
-                        key={`${partner.id}-${halfIdx}-${idx}`}
-                        type="button"
-                        tabIndex={halfIdx === 1 ? -1 : 0}
-                        onClick={() => handleSelectTab('about')}
-                        title={`${partner.name} — ${partner.role}`}
-                        className="group flex items-center gap-3 px-3.5 sm:px-4 py-2 rounded-2xl bg-white border border-[#E3E9E3] hover:border-[#046D38] shadow-[0_2px_10px_rgba(3,83,40,0.04)] transition-all duration-300 shrink-0 cursor-pointer text-left"
-                      >
-                        <div className="h-10 sm:h-11 px-1.5 flex items-center justify-center shrink-0">
-                          <img
-                            src={partner.logoPath}
-                            alt={partner.name}
-                            className={`${partner.aspectClass} object-contain`}
-                            loading="eager"
-                            decoding="async"
-                          />
-                        </div>
-                        <div className="pr-1">
-                          <p className="text-xs sm:text-[13px] font-bold text-[#24352B] group-hover:text-[#046D38] transition-colors whitespace-nowrap">
-                            {partner.shortName}
-                          </p>
-                          <p className="text-[10px] sm:text-[11px] text-[#68756C] whitespace-nowrap">
-                            {partner.role}
-                          </p>
-                        </div>
-                      </button>
-                    )
-                  )}
-                </div>
-              ))}
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => {
+                  setAboutFocusSection('top');
+                  handleSelectTab('about');
+                }}
+                className="text-[#046D38] hover:text-[#035328] hover:underline transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Tentang Aplikasi &rarr;
+              </button>
+              <span className="text-[#C9D4CA]" aria-hidden="true">
+                &middot;
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setAboutFocusSection('address');
+                  handleSelectTab('about');
+                }}
+                className="text-[#046D38] hover:text-[#035328] hover:underline transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Alamat Yayasan &rarr;
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* Bottom Attribution & Quick Link to Tentang Aplikasi */}
-        <div className="container-app py-3.5 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left text-fluid-xs">
-          <span>
-            &copy; {new Date().getFullYear()}{' '}
-            <strong style={{ color: 'var(--color-text-primary)' }}>{APP_CONFIG.appName}</strong>
-            {' · '}
-            Dikembangkan oleh{' '}
-            <strong style={{ color: 'var(--color-text-primary)' }}>
-              {APP_INFO.developerName}
-            </strong>{' '}
-            ({APP_INFO.developerRole},{' '}
-            <strong style={{ color: 'var(--color-primary)' }}>{APP_INFO.agencyName}</strong>)
-          </span>
+          {/* Partner Logos — Centered, Unwrapped Icons, 10s Continuous Smooth Auto-Slide */}
+          <div className="w-full flex flex-col items-center justify-center gap-2 py-3 border-y border-[#E3E9E3]/80">
+            <span className="text-[11px] font-medium text-[#68756C] tracking-wide">
+              Didukung &amp; Berkolaborasi Bersama
+            </span>
+            <div
+              className="ziezan-footer-marquee-mask max-w-[320px] sm:max-w-[480px] md:max-w-[540px] py-1 mx-auto"
+              aria-label="Mitra Kolaborasi Ziezan Quran"
+            >
+              <div className="ziezan-footer-marquee-track">
+                {[0, 1].map((loopIndex) => (
+                  <div
+                    key={loopIndex}
+                    aria-hidden={loopIndex === 1 ? 'true' : undefined}
+                    className="flex items-center gap-6 sm:gap-8 pr-6 sm:pr-8 shrink-0"
+                  >
+                    {PARTNER_LOGOS.map((partner) => (
+                      <button
+                        key={`${loopIndex}-${partner.id}`}
+                        type="button"
+                        tabIndex={loopIndex === 1 ? -1 : 0}
+                        onClick={() => {
+                          setAboutFocusSection(
+                            partner.id === 'yayasan-kpm' ? 'address' : 'top'
+                          );
+                          handleSelectTab('about');
+                        }}
+                        title={partner.name}
+                        className="group inline-flex items-center gap-2.5 bg-transparent border-0 p-0 transition-opacity hover:opacity-80 cursor-pointer shrink-0"
+                      >
+                        <img
+                          src={partner.logoPath}
+                          alt={partner.name}
+                          className={`${partner.aspectClass} object-contain shrink-0`}
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                        />
+                        <span className="text-xs font-semibold text-[#24352B] group-hover:text-[#035328] transition-colors whitespace-nowrap">
+                          {partner.shortName}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => handleSelectTab('about')}
-            className="text-xs font-semibold text-[#046D38] hover:underline cursor-pointer"
-          >
-            Tentang Aplikasi &amp; Alamat Yayasan
-          </button>
+          {/* Bottom Row: Copyright (Centered) */}
+          <div className="flex items-center justify-center text-center text-xs text-[#68756C]">
+            <p className="m-0">
+              &copy; 2026{' '}
+              <strong className="font-semibold text-[#24352B]">
+                {APP_CONFIG.appName}
+              </strong>{' '}
+              &middot; Dikembangkan oleh{' '}
+              <strong className="font-semibold text-[#035328]">
+                {APP_INFO.developerName}
+              </strong>
+              .
+            </p>
+          </div>
         </div>
       </footer>
 
@@ -1588,6 +1810,18 @@ export default function App() {
         isOpen={offlineModalOpen}
         onClose={() => setOfflineModalOpen(false)}
         onShowToast={showToast}
+      />
+
+      {/* Bottom-to-Top Expandable More Menu Modal Popup (Replaces /lainnya/ page) */}
+      <MoreModal
+        isOpen={moreModalOpen}
+        onClose={() => setMoreModalOpen(false)}
+        onSelectTab={(tab) => handleSelectTab(tab)}
+        bookmarksCount={bookmarks.length}
+        notesCount={notes.length}
+        cachedSurahCount={cachedSurahCount}
+        onOpenOfflineModal={() => setOfflineModalOpen(true)}
+        onOpenMicrophoneModal={() => setMicModalOpen(true)}
       />
 
       {/* Official Tafsir Modal */}
@@ -1784,6 +2018,7 @@ export default function App() {
         {/* 3. Native-Style Fixed Bottom Navigation Bar (Mobile & Tablet < 1024px) */}
         <FloatingBottomNav
           activeTab={activeTab}
+          isMoreModalOpen={moreModalOpen}
           onSelectTab={(tab) => handleSelectTab(tab)}
           bookmarksCount={bookmarks.length}
         />

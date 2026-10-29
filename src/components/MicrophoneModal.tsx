@@ -3,17 +3,13 @@ import {
   AlertCircle,
   ArrowRight,
   BookOpen,
-  CheckCircle2,
   Download,
   Keyboard,
   Mic,
   MicOff,
   Pause,
   Play,
-  RefreshCw,
   Search,
-  ShieldCheck,
-  Smartphone,
   Sparkles,
   Square,
   Trash2,
@@ -759,7 +755,7 @@ export const MicrophoneModal: React.FC<MicrophoneModalProps> = ({
                 Fitur Microphone Universal
               </h2>
               <p className="text-xs text-[#68756C] truncate">
-                {contextLabel} · {capabilities.osName} ({capabilities.browserName})
+                {contextLabel}
               </p>
             </div>
           </div>
@@ -1171,52 +1167,6 @@ export const MicrophoneModal: React.FC<MicrophoneModalProps> = ({
               )}
             </div>
           )}
-
-          {/* Cross-Device & Cross-Browser Compatibility Status Footer Card */}
-          <div className="rounded-2xl border border-[#E3E9E3] bg-[#FAFDFB] p-3.5 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#046D38] shrink-0" />
-                <span className="text-xs font-bold text-[#14261C]">
-                  Kompatibilitas Mikrofon Lintas Perangkat
-                </span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-[#EDF5F0] text-[#046D38] text-[10px] font-bold">
-                Aktif &amp; Siap
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-              <div className="rounded-xl bg-white border border-[#E3E9E3] p-2">
-                <p className="text-[#68756C]">Sistem Operasi</p>
-                <p className="font-bold text-[#14261C] truncate flex items-center gap-1 mt-0.5">
-                  <Smartphone className="w-3 h-3 text-[#046D38] shrink-0" />
-                  <span>{capabilities.osName}</span>
-                </p>
-              </div>
-              <div className="rounded-xl bg-white border border-[#E3E9E3] p-2">
-                <p className="text-[#68756C]">Peramban (Browser)</p>
-                <p className="font-bold text-[#14261C] truncate mt-0.5">
-                  {capabilities.browserName}
-                </p>
-              </div>
-              <div className="rounded-xl bg-white border border-[#E3E9E3] p-2">
-                <p className="text-[#68756C]">Input Hardware Mic</p>
-                <p className="font-bold text-[#046D38] truncate flex items-center gap-1 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 shrink-0" />
-                  <span>{capabilities.hasGetUserMedia ? 'Didukung Penuh' : 'Mode Dikte OS'}</span>
-                </p>
-              </div>
-              <div className="rounded-xl bg-white border border-[#E3E9E3] p-2">
-                <p className="text-[#68756C]">Mesin Suara</p>
-                <p className="font-bold text-[#046D38] truncate mt-0.5">
-                  {capabilities.hasSpeechRecognition
-                    ? 'Web Speech + WAV'
-                    : 'Universal Audio + Dikte'}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

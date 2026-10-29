@@ -35,7 +35,16 @@
       ]
     },
     {
-      "source": "/(sw\\.js|workbox-.*\\.js|manifest\\.webmanifest|manifest\\.json)",
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
       "headers": [
         {
           "key": "Cache-Control",
@@ -73,15 +82,11 @@
   ],
   "rewrites": [
     {
-      "source": "/(kiblat|qibla|arah-kiblat|shalat|salat|jadwal-shalat|jadwal-salat|adzan|doa|dzikir|surat|mushaf|quran|hijriah|hijri|kalender-hijriah|bookmark|bookmarks|tersimpan|cari|search|lainnya|more|pengaturan|settings|tentang|about)/?",
+      "source": "/:path*",
       "destination": "/index.html"
     },
     {
-      "source": "/surat/:path*",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/((?!api/|icons/|audio/|assets/|robots\\.txt|sitemap\\.xml|llms\\.txt|manifest\\.webmanifest|manifest\\.json|favicon\\.png|icon\\.svg|apple-touch-icon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|pwa-maskable-512x512\\.png|sw\\.js|workbox-.*).*)",
+      "source": "/:path*/",
       "destination": "/index.html"
     },
     {
@@ -90,5 +95,3 @@
     }
   ]
 }
-
-

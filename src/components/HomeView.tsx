@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Bell,
@@ -14,15 +14,22 @@ import {
   Headphones,
   Heart,
   Leaf,
+  MapPin,
   Mic,
   MicOff,
+  Play,
   Search,
-  Sparkles,
+  Square,
   Sun,
   Volume2,
   X,
 } from 'lucide-react';
 import { FEATURED_SURAHS } from '../config/brand';
+import {
+  ADZAN_STREAM_LIST,
+  syncShalatScheduleToServiceWorker,
+  unlockAndPrimeBackgroundAudio,
+} from '../services/adzanAudioService';
 import {
   computeNextPrayer,
   equranShalatApi,
@@ -31,10 +38,14 @@ import {
 } from '../services/islamicApi';
 import { storageService } from '../services/storageService';
 import {
+  ActiveAdzanPlaybackState,
+  AdhanSoundPreference,
+  AdzanAudioCategory,
   DailyTasksState,
   MabimsTodayResponse,
   ShalatDailySchedule,
   ShalatMonthlyData,
+  ShalatReminderSettings,
 } from '../types/islamic';
 import {
   ActiveTab,
@@ -59,6 +70,11 @@ interface HomeViewProps {
   onNavigateToBookmarks: () => void;
   onSelectTab: (tab: ActiveTab) => void;
   onOpenMicrophone?: () => void;
+  onActivateBackgroundAdzan?: () => void;
+  adzanPlayback?: ActiveAdzanPlaybackState | null;
+  onTestAdzanCategory?: (category: AdzanAudioCategory) => void;
+  onStopAdzanAudio?: () => void;
+  onShowToast?: (msg: string) => void;
 }
 
 const TOTAL_QURAN_AYATS = 6236;
@@ -101,6 +117,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onNavigateToSurahList,
   onSelectTab,
   onOpenMicrophone,
+  onActivateBackgroundAdzan,
+  adzanPlayback = null,
+  onTestAdzanCategory,
+  onStopAdzanAudio,
+  onShowToast,
 }) => {
   const [quickSearch, setQuickSearch] = useState('');
   const [voiceToast, setVoiceToast] = useState<string | null>(null);
@@ -109,6 +130,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [notifPermissionGranted, setNotifPermissionGranted] = useState(() => {
     return typeof Notification !== 'undefined' && Notification.permission === 'granted';
   });
+  const [shalatReminders, setShalatReminders] = useState<ShalatReminderSettings>(() =>
+    storageService.getShalatReminders()
+  );
 
   const [dailyTasksState, setDailyTasksState] = useState<DailyTasksState>(() =>
     storageService.getDailyTasks()
@@ -117,6 +141,34 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [mabimsToday, setMabimsToday] = useState<MabimsTodayResponse | null>(null);
   const [shalatSummary, setShalatSummary] = useState<ShalatMonthlyData | null>(null);
   const [nowTick, setNowTick] = useState<Date>(() => new Date());
+  const [scrollRatio, setScrollRatio] = useState<number>(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let rafId: number | null = null;
+
+    const updateScrollBlur = () => {
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      const nextRatio = Math.min(1, Math.max(0, y / 240));
+      setScrollRatio((prev) => (Math.abs(prev - nextRatio) > 0.01 ? nextRatio : prev));
+      rafId = null;
+    };
+
+    const onScroll = () => {
+      if (rafId === null) {
+        rafId = window.requestAnimationFrame(updateScrollBlur);
+      }
+    };
+
+    updateScrollBlur();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
 
   const showTempVoiceToast = (msg: string, duration = 3200) => {
     setVoiceToast(msg);
@@ -239,26 +291,133 @@ export const HomeView: React.FC<HomeViewProps> = ({
     setDailyTasksState(nextState);
   };
 
-  // Request Browser Notification Permission
-  const handleRequestNotifPermission = async () => {
+  // Sync shalatReminders when updated externally
+  useEffect(() => {
+    const syncRem = () => {
+      setShalatReminders(storageService.getShalatReminders());
+      if (typeof Notification !== 'undefined') {
+        setNotifPermissionGranted(Notification.permission === 'granted');
+      }
+    };
+    window.addEventListener('ziezan:shalat-settings-updated', syncRem);
+    return () => window.removeEventListener('ziezan:shalat-settings-updated', syncRem);
+  }, []);
+
+  // Request Browser Notification Permission & Enable Background Automatic Adzan
+  const handleRequestNotifPermission = async (openDrawerAfter = false) => {
+    // 1. Unlock HTML5 Audio & Web Audio keep-alive synchronously on user gesture
+    unlockAndPrimeBackgroundAudio();
+    onActivateBackgroundAdzan?.();
+
+    // 2. Ensure automatic prayer reminders & Adzan audio are enabled for the user's configured location
+    const currentRem = storageService.getShalatReminders();
+    const updatedRem: ShalatReminderSettings = {
+      ...currentRem,
+      enabled: true,
+      audioEnabled: true,
+      sound: currentRem.sound === 'mute' ? 'adzan-auto' : currentRem.sound,
+    };
+    storageService.saveShalatReminders(updatedRem);
+    setShalatReminders(updatedRem);
+
+    const loc = storageService.getShalatLocation();
+    const locationLabel = shalatSummary
+      ? `${shalatSummary.kabkota}, ${shalatSummary.provinsi}`
+      : `${loc.kabkota}, ${loc.provinsi}`;
+
+    // Sync schedule with Service Worker for background execution
+    if (todayShalatRow) {
+      const idx = shalatSummary?.jadwal?.indexOf(todayShalatRow) ?? -1;
+      const tomorrowRow =
+        idx >= 0 && shalatSummary && idx + 1 < shalatSummary.jadwal.length
+          ? shalatSummary.jadwal[idx + 1]
+          : todayShalatRow;
+      syncShalatScheduleToServiceWorker({
+        provinsi: shalatSummary?.provinsi || loc.provinsi,
+        kabkota: shalatSummary?.kabkota || loc.kabkota,
+        todayRow: todayShalatRow,
+        tomorrowRow,
+        settings: updatedRem,
+      });
+    }
+
+    if (openDrawerAfter) {
+      setShowNotifDrawer(true);
+    }
+
     if (typeof Notification === 'undefined') {
-      setVoiceToast('Notifikasi perangkat tidak didukung di browser ini.');
-      setTimeout(() => setVoiceToast(null), 3000);
+      const msg = `Audio Adzan otomatis diaktifkan untuk wilayah ${locationLabel}.`;
+      onShowToast ? onShowToast(msg) : showTempVoiceToast(msg, 3200);
       return;
     }
+
     try {
-      const perm = await Notification.requestPermission();
+      const currentPerm = Notification.permission;
+      const perm =
+        currentPerm === 'granted'
+          ? 'granted'
+          : await Notification.requestPermission();
+
       if (perm === 'granted') {
         setNotifPermissionGranted(true);
-        setVoiceToast('Notifikasi pengingat shalat dan tugas harian telah diaktifkan!');
+        const successMsg = `Notifikasi & suara Adzan otomatis aktif untuk ${locationLabel}!`;
+        onShowToast ? onShowToast(successMsg) : showTempVoiceToast(successMsg, 3500);
+
+        // Send a confirmation notification if newly granted
+        if (currentPerm !== 'granted') {
+          const title = 'Ziezan Quran — Adzan & Notifikasi Otomatis Aktif';
+          const body = `Pengingat suara Adzan, Imsak, dan waktu salat wilayah ${locationLabel} akan berbunyi otomatis sesuai jadwal meskipun aplikasi di latar belakang.`;
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready
+              .then((reg) =>
+                reg.showNotification(title, {
+                  body,
+                  icon: '/icons/ziezan-quran.png',
+                  badge: '/icons/ziezan-quran.png',
+                  tag: 'ziezan-adzan-activated',
+                })
+              )
+              .catch(() => {
+                try {
+                  new Notification(title, { body, icon: '/icons/ziezan-quran.png' });
+                } catch {
+                  // Ignore
+                }
+              });
+          } else {
+            try {
+              new Notification(title, { body, icon: '/icons/ziezan-quran.png' });
+            } catch {
+              // Ignore
+            }
+          }
+        }
       } else {
         setNotifPermissionGranted(false);
-        setVoiceToast('Izin notifikasi ditolak oleh peramban.');
+        const warnMsg =
+          'Izin notifikasi belum diizinkan di browser. Audio Adzan otomatis saat tab aktif tetap disiapkan.';
+        onShowToast ? onShowToast(warnMsg) : showTempVoiceToast(warnMsg, 3500);
       }
     } catch {
-      setVoiceToast('Gagal meminta izin notifikasi.');
+      const fallbackMsg = `Pengingat Adzan otomatis diaktifkan untuk ${locationLabel}.`;
+      onShowToast ? onShowToast(fallbackMsg) : showTempVoiceToast(fallbackMsg, 3200);
     }
-    setTimeout(() => setVoiceToast(null), 3000);
+  };
+
+  const handleSoundPrefChange = (nextSound: AdhanSoundPreference) => {
+    unlockAndPrimeBackgroundAudio();
+    onActivateBackgroundAdzan?.();
+    if (nextSound === 'mute') {
+      onStopAdzanAudio?.();
+    }
+    const updated: ShalatReminderSettings = {
+      ...shalatReminders,
+      enabled: true,
+      audioEnabled: nextSound !== 'mute',
+      sound: nextSound,
+    };
+    storageService.saveShalatReminders(updated);
+    setShalatReminders(updated);
   };
 
   const pendingTaskCount = dailyTasksState.tasks.filter((t) => !t.completed).length;
@@ -273,9 +432,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
     Number(((effectiveReadCount / TOTAL_QURAN_AYATS) * 100).toFixed(1))
   );
 
+  const bgImageBlurPx = (scrollRatio * 10).toFixed(1);
+  const bgImageScale = (1 + scrollRatio * 0.035).toFixed(3);
+  const glassBackdropBlurPx = (2 + scrollRatio * 18).toFixed(1);
+  const glassSaturation = 108 + Math.round(scrollRatio * 36);
+  const topTintAlpha = (0.06 + scrollRatio * 0.72).toFixed(2);
+  const midTintAlpha = (0.22 + scrollRatio * 0.64).toFixed(2);
+  const lowTintAlpha = (0.78 + scrollRatio * 0.16).toFixed(2);
+  const bottomTintAlpha = (0.88 + scrollRatio * 0.09).toFixed(2);
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* FULL-BLEED RESPONSIVE PORTRAIT & LANDSCAPE BACKGROUND */}
+      {/* FULL-BLEED RESPONSIVE PORTRAIT & LANDSCAPE BACKGROUND WITH SCROLL-PROGRESSIVE GLASSMORPHISM */}
       <div className="fixed inset-0 z-0 pointer-events-none select-none overflow-hidden">
         <picture>
           <source media="(orientation: landscape)" srcSet={BG_LANDSCAPE_PATH} />
@@ -284,14 +452,34 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <img
             src={BG_PORTRAIT_PATH}
             alt="Latar Masjid Ziezan Quran"
-            className="w-full h-full object-cover object-top"
+            className="w-full h-full object-cover object-top transition-[filter,transform] duration-150 ease-out will-change-transform"
+            style={{
+              filter: `blur(${bgImageBlurPx}px)`,
+              transform: `scale(${bgImageScale})`,
+            }}
           />
         </picture>
+
+        {/* Bottom-Weighted Spatial Glassmorphism Layer */}
         <div
           className="absolute inset-0"
           style={{
-            background:
-              'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(247,248,245,0.18) 34%, rgba(247,248,245,0.78) 54%, rgba(247,248,245,0.88) 100%)',
+            backdropFilter: 'blur(12px) saturate(125%)',
+            WebkitBackdropFilter: 'blur(12px) saturate(125%)',
+            maskImage:
+              'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 36%, rgba(0,0,0,0.85) 56%, rgba(0,0,0,1) 75%)',
+            WebkitMaskImage:
+              'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 36%, rgba(0,0,0,0.85) 56%, rgba(0,0,0,1) 75%)',
+          }}
+        />
+
+        {/* Scroll-Reactive Progressive Glassmorphism Scrim (Intensifies as User Scrolls Down) */}
+        <div
+          className="absolute inset-0 transition-[backdrop-filter] duration-150 ease-out"
+          style={{
+            backdropFilter: `blur(${glassBackdropBlurPx}px) saturate(${glassSaturation}%)`,
+            WebkitBackdropFilter: `blur(${glassBackdropBlurPx}px) saturate(${glassSaturation}%)`,
+            background: `linear-gradient(180deg, rgba(247,248,245,${topTintAlpha}) 0%, rgba(242,247,244,${midTintAlpha}) 34%, rgba(247,248,245,${lowTintAlpha}) 56%, rgba(247,248,245,${bottomTintAlpha}) 100%)`,
           }}
         />
       </div>
@@ -353,12 +541,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
               <button
                 type="button"
-                onClick={() => setShowNotifDrawer(true)}
-                aria-label="Pengingat Waktu Salat & Tugas Harian"
-                title="Buka Pengingat & Tugas Ibadah Harian"
-                className="relative w-10 h-10 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-xs flex items-center justify-center text-white transition-transform active:scale-95 shrink-0 cursor-pointer shadow-sm"
+                onClick={() => {
+                  void handleRequestNotifPermission(true);
+                }}
+                aria-label="Aktifkan Notifikasi & Suara Adzan Otomatis"
+                title={
+                  notifPermissionGranted && shalatReminders.enabled && shalatReminders.audioEnabled
+                    ? 'Notifikasi & Suara Adzan Otomatis Aktif (Ketuk untuk pengaturan)'
+                    : 'Ketuk untuk izinkan notifikasi & aktifkan suara Adzan otomatis'
+                }
+                className={`relative w-10 h-10 rounded-full backdrop-blur-xs flex items-center justify-center transition-all active:scale-95 shrink-0 cursor-pointer shadow-sm ${
+                  notifPermissionGranted && shalatReminders.enabled && shalatReminders.audioEnabled
+                    ? 'bg-[#046D38]/95 hover:bg-[#035328] border border-[#FBC647]/70 text-[#FBC647]'
+                    : 'bg-black/25 hover:bg-black/35 text-white'
+                }`}
               >
-                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" />
+                <Bell className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow" />
                 {pendingTaskCount > 0 ? (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] px-1 rounded-full bg-[#E53935] text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white shadow-xs">
                     {pendingTaskCount}
@@ -960,19 +1158,118 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
               </div>
 
-              {/* Notification System Permission Status & Toggle */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs font-medium text-[#24352B]">
-                  Notifikasi Perangkat: {notifPermissionGranted ? 'Aktif (Diberikan)' : 'Belum Diizinkan'}
-                </span>
-                {!notifPermissionGranted && (
-                  <button
-                    type="button"
-                    onClick={handleRequestNotifPermission}
-                    className="px-3 py-1.5 rounded-full bg-[#046D38] text-white text-xs font-bold hover:bg-[#035328] transition-colors cursor-pointer"
+              {/* Notification System Permission Status, Background Adzan & Sound Selector */}
+              <div className="space-y-2.5 pt-1 border-t border-[#E3E9E3]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#24352B]">
+                    <Volume2 className="w-4 h-4 text-[#046D38] shrink-0" />
+                    <span>
+                      Notifikasi &amp; Adzan Latar Belakang:{' '}
+                      <strong className="text-[#035328]">
+                        {notifPermissionGranted
+                          ? 'Aktif Otomatis'
+                          : 'Menunggu Izin Browser'}
+                      </strong>
+                    </span>
+                  </div>
+                  {!notifPermissionGranted && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleRequestNotifPermission(false);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-[#046D38] text-white text-xs font-bold hover:bg-[#035328] transition-colors cursor-pointer"
+                    >
+                      Izinkan Notifikasi
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-[11px] text-[#68756C] leading-relaxed">
+                  Saat jadwal salat tiba di wilayah{' '}
+                  <strong className="text-[#24352B]">
+                    {shalatSummary
+                      ? `${shalatSummary.kabkota}, ${shalatSummary.provinsi}`
+                      : 'Kab. Serang, Banten'}
+                  </strong>
+                  , perangkat akan otomatis menampilkan notifikasi dan mengumandangkan suara Adzan / pengingat meskipun aplikasi sedang di latar belakang.
+                </p>
+
+                {/* Quick Automatic Sound Mode Selector */}
+                <div className="pt-1">
+                  <label
+                    htmlFor="home-notif-sound-select"
+                    className="block text-[11px] font-bold uppercase tracking-wider text-[#68756C] mb-1"
                   >
-                    Aktifkan Notifikasi
-                  </button>
+                    Pilihan Suara Otomatis Saat Waktu Masuk
+                  </label>
+                  <select
+                    id="home-notif-sound-select"
+                    value={shalatReminders.audioEnabled ? shalatReminders.sound : 'mute'}
+                    onChange={(e) =>
+                      handleSoundPrefChange(e.target.value as AdhanSoundPreference)
+                    }
+                    className="w-full rounded-xl border border-[#E3E9E3] bg-white px-3 py-2 text-xs font-semibold text-[#24352B] focus:border-[#046D38] focus:outline-none"
+                  >
+                    <option value="adzan-auto">
+                      Kumandang Adzan, Imsak &amp; Terbit Otomatis (Sesuai Waktu)
+                    </option>
+                    <option value="adzan-chime">
+                      Nada Harmoni Adzan Maqam Hijaz (Lokal Offline)
+                    </option>
+                    <option value="shalat-reminder">
+                      Nada Pengingat Salat Lembut (Lokal Offline)
+                    </option>
+                    <option value="mute">Tanpa Suara (Hanya Notifikasi Layar)</option>
+                  </select>
+                </div>
+
+                {/* Quick Preview / Test Adzan & Other Sounds */}
+                {onTestAdzanCategory && (
+                  <div className="pt-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#68756C]">
+                        Uji Suara Adzan &amp; Pengingat Aplikasi
+                      </span>
+                      {adzanPlayback &&
+                        (adzanPlayback.isPlaying || adzanPlayback.isLoading) && (
+                          <button
+                            type="button"
+                            onClick={() => onStopAdzanAudio?.()}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#035328] text-white text-[11px] font-bold cursor-pointer"
+                          >
+                            <Square className="w-3 h-3 fill-current text-[#FBC647]" />
+                            <span>Hentikan</span>
+                          </button>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {ADZAN_STREAM_LIST.map((stream) => {
+                        const isActive =
+                          adzanPlayback?.category === stream.category &&
+                          (adzanPlayback.isPlaying || adzanPlayback.isLoading);
+                        return (
+                          <button
+                            key={stream.category}
+                            type="button"
+                            onClick={() => onTestAdzanCategory(stream.category)}
+                            className={`px-2.5 py-2 rounded-xl border text-left flex items-center justify-between gap-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                              isActive
+                                ? 'bg-[#035328] border-[#035328] text-white'
+                                : 'bg-white border-[#E3E9E3] text-[#24352B] hover:border-[#046D38]'
+                            }`}
+                          >
+                            <span className="truncate">{stream.label}</span>
+                            {isActive ? (
+                              <Square className="w-3.5 h-3.5 shrink-0 fill-current text-[#FBC647]" />
+                            ) : (
+                              <Play className="w-3.5 h-3.5 shrink-0 text-[#046D38]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -1002,7 +1299,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
 
               {/* Task Items List */}
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                 {dailyTasksState.tasks.map((task) => (
                   <button
                     key={task.id}
@@ -1042,7 +1339,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 }}
                 className="w-full py-2.5 rounded-xl bg-[#046D38] hover:bg-[#035328] text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
               >
-                <span>Pengaturan Audio &amp; Jadwal Salat Lengkap</span>
+                <MapPin className="w-4 h-4 text-[#FBC647]" />
+                <span>Atur Lokasi &amp; Jadwal Salat Lengkap</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

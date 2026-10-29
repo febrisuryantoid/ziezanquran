@@ -357,7 +357,7 @@ audio {
   }
 }
 
-/* Smooth Right-to-Left Partner Logo Auto-Slide Marquee in Footer */
+/* Smooth Right-to-Left Partner Logo Auto-Slide Marquee in Footer (10s Continuous Loop) */
 @keyframes ziezanMarqueeRtl {
   0% {
     transform: translate3d(0, 0, 0);
@@ -374,15 +374,15 @@ audio {
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0%,
-    #000000 6%,
-    #000000 94%,
+    #000000 8%,
+    #000000 92%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to right,
     transparent 0%,
-    #000000 6%,
-    #000000 94%,
+    #000000 8%,
+    #000000 92%,
     transparent 100%
   );
 }
@@ -396,12 +396,7 @@ audio {
   -webkit-backface-visibility: hidden;
   perspective: 1000px;
   transform: translate3d(0, 0, 0);
-  animation: ziezanMarqueeRtl 85s linear infinite;
-}
-
-.ziezan-footer-marquee-mask:hover .ziezan-footer-marquee-track,
-.ziezan-footer-marquee-mask:focus-within .ziezan-footer-marquee-track {
-  animation-play-state: paused;
+  animation: ziezanMarqueeRtl 10s linear infinite;
 }
 
 /* Responsive Beranda Background (Portrait vs Landscape) */

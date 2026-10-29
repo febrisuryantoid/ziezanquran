@@ -285,8 +285,10 @@ export function evaluateScheduleForTrigger(params: {
 
     const prayerMins = hh * 60 + mm;
     const triggerMins = (prayerMins - settings.leadMinutes + 1440) % 1440;
+    const diffMins = (nowTotalMins - triggerMins + 1440) % 1440;
 
-    if (nowTotalMins !== triggerMins) continue;
+    // Allow 0..3 minute window so backgrounded/sleeping devices that wake up slightly late still fire once
+    if (diffMins < 0 || diffMins > 3) continue;
 
     const { exactKey, slotKey } = buildPrayerTriggerKeys({
       dateIso,
@@ -337,3 +339,188 @@ export function evaluateScheduleForTrigger(params: {
 
   return null;
 }
+
+// ============================================================================
+// BACKGROUND AUDIO KEEP-ALIVE, WEB WORKER SCHEDULER & SERVICE WORKER SYNC
+// ============================================================================
+
+let sharedAudioCtx: AudioContext | null = null;
+let keepAliveOscillator: OscillatorNode | null = null;
+let isBackgroundAudioUnlocked = false;
+
+/**
+ * Unlocks HTML5 Audio and initializes an ultra-silent Web Audio keep-alive node
+ * during a direct user gesture (such as clicking the notification icon).
+ * This allows automatic Adzan & reminder audio playback even when the tab is in the background.
+ */
+export function unlockAndPrimeBackgroundAudio(
+  audioEl?: HTMLAudioElement | null
+): boolean {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    // 1. Prime the shared HTMLAudioElement on user gesture
+    if (audioEl) {
+      audioEl.load();
+    }
+
+    // 2. Initialize & resume Web Audio Context with an inaudible keep-alive node
+    const AudioCtxClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+
+    if (AudioCtxClass) {
+      if (!sharedAudioCtx) {
+        sharedAudioCtx = new AudioCtxClass();
+      }
+      if (sharedAudioCtx.state === 'suspended') {
+        void sharedAudioCtx.resume();
+      }
+      if (!keepAliveOscillator && sharedAudioCtx) {
+        const osc = sharedAudioCtx.createOscillator();
+        const gain = sharedAudioCtx.createGain();
+        // Inaudible gain (0.00001) keeps the browser media session warm in background
+        gain.gain.value = 0.00001;
+        osc.frequency.value = 1;
+        osc.connect(gain);
+        gain.connect(sharedAudioCtx.destination);
+        osc.start();
+        keepAliveOscillator = osc;
+      }
+    }
+
+    // 3. Register Periodic Background Sync if supported by browser/PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready
+        .then(async (reg) => {
+          const periodicReg = reg as ServiceWorkerRegistration & {
+            periodicSync?: {
+              register: (tag: string, options: { minInterval: number }) => Promise<void>;
+            };
+          };
+          if (periodicReg.periodicSync) {
+            try {
+              await periodicReg.periodicSync.register('ziezan-shalat-check', {
+                minInterval: 60 * 1000,
+              });
+            } catch {
+              // Ignore if periodicSync permission not granted
+            }
+          }
+        })
+        .catch(() => {});
+    }
+
+    isBackgroundAudioUnlocked = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function getIsBackgroundAudioUnlocked(): boolean {
+  return isBackgroundAudioUnlocked;
+}
+
+/**
+ * Creates an unthrottled Web Worker interval ticker so prayer schedule checks continue
+ * running reliably even when the browser tab is minimized or in the background.
+ */
+export function createBackgroundTickerWorker(
+  onTick: () => void,
+  intervalMs = 4000
+): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  let worker: Worker | null = null;
+  let workerUrl: string | null = null;
+  let fallbackIntervalId: number | null = null;
+
+  try {
+    const workerCode = `
+      let timerId = setInterval(() => {
+        self.postMessage('tick');
+      }, ${intervalMs});
+      self.onmessage = (e) => {
+        if (e.data === 'stop' && timerId) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+      };
+    `;
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    workerUrl = URL.createObjectURL(blob);
+    worker = new Worker(workerUrl);
+    worker.onmessage = () => {
+      onTick();
+    };
+  } catch {
+    // Fallback to standard window interval if Worker Blob is restricted by CSP
+  }
+
+  // Always keep a lightweight fallback interval alongside Worker
+  fallbackIntervalId = window.setInterval(onTick, intervalMs);
+
+  return () => {
+    if (worker) {
+      try {
+        worker.postMessage('stop');
+        worker.terminate();
+      } catch {
+        // Ignore
+      }
+    }
+    if (workerUrl) {
+      try {
+        URL.revokeObjectURL(workerUrl);
+      } catch {
+        // Ignore
+      }
+    }
+    if (fallbackIntervalId !== null) {
+      window.clearInterval(fallbackIntervalId);
+    }
+  };
+}
+
+/**
+ * Synchronizes the user's configured location schedule and reminder settings
+ * with the Service Worker (/sw-shalat-notifier.js) for background notifications.
+ */
+export function syncShalatScheduleToServiceWorker(params: {
+  provinsi: string;
+  kabkota: string;
+  todayRow: ShalatDailySchedule | null;
+  tomorrowRow?: ShalatDailySchedule | null;
+  settings: ShalatReminderSettings;
+}): void {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+
+  const message = {
+    type: 'SYNC_SHALAT_SCHEDULE',
+    payload: {
+      provinsi: params.provinsi,
+      kabkota: params.kabkota,
+      todayRow: params.todayRow,
+      tomorrowRow: params.tomorrowRow || null,
+      settings: params.settings,
+      triggeredEvents: params.settings.triggeredEvents || {},
+      timezone: getLocalTimezoneId(),
+    },
+  };
+
+  try {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage(message);
+    }
+    navigator.serviceWorker.ready
+      .then((reg) => {
+        reg.active?.postMessage(message);
+      })
+      .catch(() => {});
+  } catch {
+    // Ignore SW postMessage errors
+  }
+}
+

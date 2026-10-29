@@ -19,6 +19,7 @@ import { ActiveTab, ReadingProgress } from '../types/quran';
 
 interface NavbarProps {
   activeTab: ActiveTab;
+  isMoreModalOpen?: boolean;
   onSelectTab: (tab: ActiveTab) => void;
   lastRead: ReadingProgress | null;
   onContinueReading: () => void;
@@ -27,6 +28,7 @@ interface NavbarProps {
 
 interface FloatingBottomNavProps {
   activeTab: ActiveTab;
+  isMoreModalOpen?: boolean;
   onSelectTab: (tab: ActiveTab) => void;
   bookmarksCount?: number;
 }
@@ -43,42 +45,44 @@ const MOBILE_BOTTOM_NAV_ITEMS: {
   id: ActiveTab;
   label: string;
   ariaLabel: string;
-  isActiveMatch: (tab: ActiveTab) => boolean;
+  isActiveMatch: (tab: ActiveTab, isMoreModalOpen?: boolean) => boolean;
   icon: React.ReactNode;
 }[] = [
   {
     id: 'home',
     label: 'Beranda',
     ariaLabel: 'Beranda Ziezan Quran',
-    isActiveMatch: (tab) => tab === 'home',
+    isActiveMatch: (tab, isMoreModalOpen) => !isMoreModalOpen && tab === 'home',
     icon: <Home className="w-[22px] h-[22px]" strokeWidth={2} />,
   },
   {
     id: 'surah-list',
     label: "Qur'an",
     ariaLabel: "Al-Qur'an Digital 114 Surah",
-    isActiveMatch: (tab) => tab === 'surah-list' || tab === 'reader',
+    isActiveMatch: (tab, isMoreModalOpen) =>
+      !isMoreModalOpen && (tab === 'surah-list' || tab === 'reader'),
     icon: <BookOpen className="w-[22px] h-[22px]" strokeWidth={2} />,
   },
   {
     id: 'doa',
     label: 'Doa',
     ariaLabel: 'Kumpulan Doa dan Dzikir Harian',
-    isActiveMatch: (tab) => tab === 'doa',
+    isActiveMatch: (tab, isMoreModalOpen) => !isMoreModalOpen && tab === 'doa',
     icon: <BookHeart className="w-[22px] h-[22px]" strokeWidth={2} />,
   },
   {
     id: 'qibla',
     label: 'Kiblat',
     ariaLabel: "Arah Kiblat dan Kompas Ka'bah",
-    isActiveMatch: (tab) => tab === 'qibla',
+    isActiveMatch: (tab, isMoreModalOpen) => !isMoreModalOpen && tab === 'qibla',
     icon: <Compass className="w-[22px] h-[22px]" strokeWidth={2} />,
   },
   {
     id: 'more',
     label: 'Lainnya',
     ariaLabel: 'Menu Lainnya (Jadwal Salat, Kalender Hijriah, Penanda, Pengaturan, Tentang)',
-    isActiveMatch: (tab) =>
+    isActiveMatch: (tab, isMoreModalOpen) =>
+      Boolean(isMoreModalOpen) ||
       tab === 'more' ||
       tab === 'shalat' ||
       tab === 'hijri' ||
@@ -101,37 +105,39 @@ const MOBILE_BOTTOM_NAV_ITEMS: {
 const DESKTOP_TOP_NAV_ITEMS: {
   id: ActiveTab;
   label: string;
-  isActiveMatch: (tab: ActiveTab) => boolean;
+  isActiveMatch: (tab: ActiveTab, isMoreModalOpen?: boolean) => boolean;
   icon: React.ReactNode;
 }[] = [
   {
     id: 'home',
     label: 'Beranda',
-    isActiveMatch: (tab) => tab === 'home',
+    isActiveMatch: (tab, isMoreModalOpen) => !isMoreModalOpen && tab === 'home',
     icon: <Home className="w-4 h-4 shrink-0" strokeWidth={2} />,
   },
   {
     id: 'surah-list',
     label: "Qur'an",
-    isActiveMatch: (tab) => tab === 'surah-list' || tab === 'reader',
+    isActiveMatch: (tab, isMoreModalOpen) =>
+      !isMoreModalOpen && (tab === 'surah-list' || tab === 'reader'),
     icon: <BookOpen className="w-4 h-4 shrink-0" strokeWidth={2} />,
   },
   {
     id: 'doa',
     label: 'Doa',
-    isActiveMatch: (tab) => tab === 'doa',
+    isActiveMatch: (tab, isMoreModalOpen) => !isMoreModalOpen && tab === 'doa',
     icon: <BookHeart className="w-4 h-4 shrink-0" strokeWidth={2} />,
   },
   {
     id: 'qibla',
     label: 'Kiblat',
-    isActiveMatch: (tab) => tab === 'qibla',
+    isActiveMatch: (tab, isMoreModalOpen) => !isMoreModalOpen && tab === 'qibla',
     icon: <Compass className="w-4 h-4 shrink-0" strokeWidth={2} />,
   },
   {
     id: 'more',
     label: 'Lainnya',
-    isActiveMatch: (tab) =>
+    isActiveMatch: (tab, isMoreModalOpen) =>
+      Boolean(isMoreModalOpen) ||
       tab === 'more' ||
       tab === 'shalat' ||
       tab === 'hijri' ||
@@ -145,6 +151,7 @@ const DESKTOP_TOP_NAV_ITEMS: {
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
+  isMoreModalOpen = false,
   onSelectTab,
   lastRead,
   onContinueReading,
@@ -212,7 +219,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="hidden lg:flex items-center gap-1"
           >
             {DESKTOP_TOP_NAV_ITEMS.map((item) => {
-              const isActive = item.isActiveMatch(activeTab);
+              const isActive = item.isActiveMatch(activeTab, isMoreModalOpen);
               return (
                 <button
                   key={item.id}
@@ -396,7 +403,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
 /**
  * Native-Style Fixed Bottom Navigation Bar (Mobile & Tablet < 1024px)
- * - Tepat 5 item: Beranda, Al-Qur'an, Adzan, Doa, Lainnya
+ * - Tepat 5 item: Beranda, Al-Qur'an, Doa, Kiblat, Lainnya
  * - Latar putih solid (#FFFFFF), pemisah tipis (#E3E9E3), bayangan sangat ringan
  * - Safe-area inset bottom support
  * - Target sentuh minimal 44x44 px
@@ -405,6 +412,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
   activeTab,
   onSelectTab,
+  isMoreModalOpen = false,
 }) => {
   if (activeTab === 'reader') {
     return null;
@@ -420,7 +428,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
     >
       <div className="w-full grid grid-cols-5 items-stretch px-1 sm:px-4 md:px-8">
         {MOBILE_BOTTOM_NAV_ITEMS.map((item) => {
-          const isActive = item.isActiveMatch(activeTab);
+          const isActive = item.isActiveMatch(activeTab, isMoreModalOpen);
           return (
             <button
               key={item.id}

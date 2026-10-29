@@ -158,6 +158,8 @@ export type ActiveTab =
   | "bookmarks"
   | "settings"
   | "more"
-  | "about";
+  | "about"
+  | "not-found";
+
 
 

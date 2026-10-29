@@ -56,8 +56,11 @@ export const seoService = {
     let pageDesc = `Baca Al-Qur'an Digital 114 Surat (6.236 Ayat) lengkap teks Arab, Latin, terjemahan Kemenag RI, tafsir, dan murottal 6 qari di ${SITE_URL}.`;
     let canonical = `${baseUrl}/`;
 
-    // Robots directive: strictly noindex for /lainnya/ and /pengaturan/
-    const isNoIndex = params.activeTab === 'more' || params.activeTab === 'settings';
+    // Robots directive: strictly noindex for /lainnya/, /pengaturan/, and 404 not-found
+    const isNoIndex =
+      params.activeTab === 'more' ||
+      params.activeTab === 'settings' ||
+      params.activeTab === 'not-found';
     const robotsContent = isNoIndex
       ? 'noindex, nofollow'
       : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
@@ -150,14 +153,14 @@ export const seoService = {
       pageTitle = `Pengaturan Mushaf & Aplikasi — ${APP_CONFIG.appName}`;
       pageDesc = `Atur jenis huruf Arab, ukuran teks, qari murottal, cache offline 114 surat, dan pencadangan data di ${APP_CONFIG.appName} (${SITE_URL}).`;
       canonical = `${baseUrl}/pengaturan/`;
-    } else if (params.activeTab === 'more') {
-      pageTitle = `Menu Lainnya (Jadwal Salat, Kalender Hijriah, Pengaturan & Tentang) — ${APP_CONFIG.appName}`;
-      pageDesc = `Akses fitur ibadah tambahan, pengaturan mushaf, dan informasi aplikasi Ziezan Quran.`;
-      canonical = `${baseUrl}/lainnya/`;
     } else if (params.activeTab === 'about') {
       pageTitle = `Tentang ${APP_CONFIG.appName} (${APP_INFO.developerName} · ${APP_INFO.agencyName})`;
       pageDesc = `${APP_CONFIG.appName} (${SITE_URL}) dikembangkan oleh ${APP_INFO.developerName}, ${APP_INFO.developerRole} di ${APP_INFO.agencyName}.`;
       canonical = `${baseUrl}/tentang/`;
+    } else if (params.activeTab === 'not-found') {
+      pageTitle = `404 Halaman Tidak Ditemukan — ${APP_CONFIG.appName}`;
+      pageDesc = `Halaman yang Anda tuju tidak ditemukan di ${APP_CONFIG.appName} (${SITE_URL}).`;
+      canonical = `${baseUrl}/`;
     }
 
     document.title = pageTitle;

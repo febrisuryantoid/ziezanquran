@@ -72,46 +72,45 @@ export const PARTNER_LOGOS: readonly PartnerLogoItem[] = [
     id: "yayasan-kpm",
     name: "Yayasan Karya Pondok Mandiri",
     shortName: "Yayasan Karya Pondok Mandiri",
-    role: "Lembaga Pendidikan, Dakwah & Pemberdayaan Mandiri",
+    role: "Lembaga Pendidikan, Dakwah & Pemberdayaan",
     logoPath: "/assets/aistudio/Logo_KPM_b0b5caf5.png",
-    aspectClass: "h-10 sm:h-11 w-auto",
+    aspectClass: "h-8 sm:h-9 w-auto",
   },
   {
     id: "embi-tech",
     name: "Embi Tech Computindo",
     shortName: "Embi Tech Computindo",
-    role: "Mitra Teknologi Informasi & Komputasi Digital",
+    role: "Mitra Teknologi Informasi & Komputasi",
     logoPath: "/assets/aistudio/Logo_Embi_Tech_c7a9c101.png",
-    aspectClass: "h-10 sm:h-11 w-auto",
+    aspectClass: "h-8 sm:h-9 w-auto",
   },
   {
     id: "bbpvp-bekasi",
     name: "BBPVP Bekasi",
     shortName: "BBPVP Bekasi",
-    role: "Balai Besar Pelatihan Vokasi dan Produktivitas Bekasi",
+    role: "Balai Besar Pelatihan Vokasi & Produktivitas",
     logoPath: "/assets/aistudio/Logo-BBPVP-Bekasi_ee05602a.png",
-    aspectClass: "h-9 sm:h-10 w-auto",
+    aspectClass: "h-7 sm:h-8 w-auto",
   },
 ] as const;
 
 export const YAYASAN_KPM_INFO = {
   name: "Yayasan Karya Pondok Mandiri",
   logoPath: "/assets/aistudio/Logo_KPM_b0b5caf5.png",
-  tagline: "Pendidikan Keislaman, Pelatihan Vokasi Komunitas & Kemandirian Umat",
+  identityTagline: "Dari Baros, Kab. Serang, Banten untuk Indonesia.",
+  tagline: "Pendidikan Keislaman, Pelatihan Vokasi & Kemandirian Umat",
   description:
-    "Yayasan Karya Pondok Mandiri merupakan lembaga sosial, pendidikan keagamaan, pelatihan keterampilan vokasi komunitas, dan pemberdayaan ekonomi masyarakat mandiri yang berkomitmen mencetak generasi berakhlak mulia, berdaya saing teknologi, serta mandiri secara berkelanjutan.",
-  addressFull:
-    "Desa Sangiang Jaya, Kecamatan Cimarga, Kabupaten Lebak, Provinsi Banten 42361, Indonesia",
+    "Yayasan Karya Pondok Mandiri merupakan lembaga pendidikan, sosial keagamaan, dan pemberdayaan masyarakat di Baros, Kabupaten Serang, Banten.",
+  addressFull: "Kp. Cangkudu RT.10/RW.02, Sukamanah, Baros, Banten - 42173",
   addressDetails: {
-    desaKelurahan: "Desa Sangiang Jaya",
-    kecamatan: "Kecamatan Cimarga",
-    kabupatenKota: "Kabupaten Lebak",
-    provinsi: "Provinsi Banten",
-    kodePos: "42361",
+    desaKelurahan: "Sukamanah",
+    kecamatan: "Baros",
+    kabupatenKota: "Kab. Serang",
+    provinsi: "Banten",
+    kodePos: "42173",
     negara: "Indonesia",
   },
-  mapsQueryUrl:
-    "https://www.google.com/maps/search/?api=1&query=Yayasan+Karya+Pondok+Mandiri+Desa+Sangiang+Jaya+Cimarga+Lebak+Banten",
+  mapsQueryUrl: "https://maps.app.goo.gl/32CHUMp517f2oeJFA",
 } as const;
 
 export const API_BASE_URL = "https://equran.id/api/v2";
