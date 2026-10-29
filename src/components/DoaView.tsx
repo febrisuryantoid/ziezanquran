@@ -6,12 +6,15 @@ import {
   Copy,
   Filter,
   Heart,
+  Mic,
+  MicOff,
   RefreshCw,
   Search,
   Share2,
   Tag,
   X,
 } from 'lucide-react';
+import { useUniversalVoiceSearch } from '../hooks/useUniversalVoiceSearch';
 import { equranDoaApi } from '../services/islamicApi';
 import { storageService } from '../services/storageService';
 import { DoaItem } from '../types/islamic';
@@ -21,6 +24,7 @@ interface DoaViewProps {
   arabicFontFamily: ArabicFontFamily;
   arabicFontSize: number;
   onShowToast: (msg: string) => void;
+  onOpenMicrophone?: () => void;
 }
 
 const FONT_CLASS_MAP: Record<ArabicFontFamily, string> = {
@@ -33,6 +37,7 @@ export const DoaView: React.FC<DoaViewProps> = ({
   arabicFontFamily,
   arabicFontSize,
   onShowToast,
+  onOpenMicrophone,
 }) => {
   const [allDoas, setAllDoas] = useState<DoaItem[]>([]);
   const [filteredByApiDoas, setFilteredByApiDoas] = useState<DoaItem[] | null>(null);
@@ -44,6 +49,21 @@ export const DoaView: React.FC<DoaViewProps> = ({
   const [selectedGrup, setSelectedGrup] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [onlyFavorites, setOnlyFavorites] = useState<boolean>(false);
+
+  const { isListening, toggleVoiceSearch } = useUniversalVoiceSearch({
+    onTranscriptChange: (text) => setSearchQuery(text),
+    onFinalIntent: (intent) => {
+      if (intent.doaQuery) {
+        setSearchQuery(intent.doaQuery);
+      } else if (intent.cleanedQuery) {
+        setSearchQuery(intent.cleanedQuery);
+      }
+    },
+    onOpenFallbackModal: () => {
+      onOpenMicrophone?.();
+    },
+    onToast: onShowToast,
+  });
 
   const [favoriteIds, setFavoriteIds] = useState<number[]>(() =>
     storageService.getFavoriteDoaIds()
@@ -293,19 +313,38 @@ export const DoaView: React.FC<DoaViewProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama doa, arti, kata kunci, atau riwayat hadis..."
-              className="w-full rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] py-2.5 pl-10 pr-9 text-sm text-[#24352B] placeholder:text-[#68756C] focus:border-[#046D38] focus:bg-white focus:outline-none"
+              placeholder="Cari atau ucapkan nama doa, arti, atau kata kunci..."
+              className="w-full rounded-xl border border-[#E3E9E3] bg-[#F7F8F5] py-2.5 pl-10 pr-20 text-sm text-[#24352B] placeholder:text-[#68756C] focus:border-[#046D38] focus:bg-white focus:outline-none"
             />
-            {searchQuery && (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Hapus pencarian"
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[#68756C] hover:bg-stone-200/60 cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Hapus pencarian"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#68756C] hover:text-[#24352B]"
+                onClick={() => toggleVoiceSearch('id-ID')}
+                aria-label={isListening ? 'Hentikan perekaman suara' : 'Cari doa dengan suara mikrofon'}
+                title="Cari Doa dengan Suara (Microphone)"
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                  isListening
+                    ? 'bg-[#E53935] text-white animate-pulse'
+                    : 'bg-[#046D38] hover:bg-[#035328] text-white'
+                }`}
               >
-                <X className="h-4 w-4" />
+                {isListening ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
               </button>
-            )}
+            </div>
           </div>
 
           {/* Grup (Kategori) Select */}

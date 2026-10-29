@@ -58,6 +58,62 @@ export const BRAND_COLORS = {
 export const BRAND_LOGO_PATH = "/icons/ziezan-quran.png";
 export const BRAND_LOGO_FALLBACK_PATH = "/icons/ziezan-quran.png";
 
+export interface PartnerLogoItem {
+  id: string;
+  name: string;
+  shortName: string;
+  role: string;
+  logoPath: string;
+  aspectClass: string;
+}
+
+export const PARTNER_LOGOS: readonly PartnerLogoItem[] = [
+  {
+    id: "yayasan-kpm",
+    name: "Yayasan Karya Pondok Mandiri",
+    shortName: "Yayasan Karya Pondok Mandiri",
+    role: "Lembaga Pendidikan, Dakwah & Pemberdayaan Mandiri",
+    logoPath: "/assets/aistudio/Logo_KPM_b0b5caf5.png",
+    aspectClass: "h-10 sm:h-11 w-auto",
+  },
+  {
+    id: "embi-tech",
+    name: "Embi Tech Computindo",
+    shortName: "Embi Tech Computindo",
+    role: "Mitra Teknologi Informasi & Komputasi Digital",
+    logoPath: "/assets/aistudio/Logo_Embi_Tech_c7a9c101.png",
+    aspectClass: "h-10 sm:h-11 w-auto",
+  },
+  {
+    id: "bbpvp-bekasi",
+    name: "BBPVP Bekasi",
+    shortName: "BBPVP Bekasi",
+    role: "Balai Besar Pelatihan Vokasi dan Produktivitas Bekasi",
+    logoPath: "/assets/aistudio/Logo-BBPVP-Bekasi_ee05602a.png",
+    aspectClass: "h-9 sm:h-10 w-auto",
+  },
+] as const;
+
+export const YAYASAN_KPM_INFO = {
+  name: "Yayasan Karya Pondok Mandiri",
+  logoPath: "/assets/aistudio/Logo_KPM_b0b5caf5.png",
+  tagline: "Pendidikan Keislaman, Pelatihan Vokasi Komunitas & Kemandirian Umat",
+  description:
+    "Yayasan Karya Pondok Mandiri merupakan lembaga sosial, pendidikan keagamaan, pelatihan keterampilan vokasi komunitas, dan pemberdayaan ekonomi masyarakat mandiri yang berkomitmen mencetak generasi berakhlak mulia, berdaya saing teknologi, serta mandiri secara berkelanjutan.",
+  addressFull:
+    "Desa Sangiang Jaya, Kecamatan Cimarga, Kabupaten Lebak, Provinsi Banten 42361, Indonesia",
+  addressDetails: {
+    desaKelurahan: "Desa Sangiang Jaya",
+    kecamatan: "Kecamatan Cimarga",
+    kabupatenKota: "Kabupaten Lebak",
+    provinsi: "Provinsi Banten",
+    kodePos: "42361",
+    negara: "Indonesia",
+  },
+  mapsQueryUrl:
+    "https://www.google.com/maps/search/?api=1&query=Yayasan+Karya+Pondok+Mandiri+Desa+Sangiang+Jaya+Cimarga+Lebak+Banten",
+} as const;
+
 export const API_BASE_URL = "https://equran.id/api/v2";
 
 export const QARI_OPTIONS: Record<QariKey, QariOption> = {

@@ -8,6 +8,7 @@ import {
   Download,
   Home,
   LayoutGrid,
+  Mic,
   Share,
   X,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ interface NavbarProps {
   onSelectTab: (tab: ActiveTab) => void;
   lastRead: ReadingProgress | null;
   onContinueReading: () => void;
+  onOpenMicrophone?: () => void;
 }
 
 interface FloatingBottomNavProps {
@@ -146,6 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   lastRead,
   onContinueReading,
+  onOpenMicrophone,
 }) => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [showIOSModal, setShowIOSModal] = useState(false);
@@ -231,8 +234,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Right: Primary Contextual Actions (Continue Reading + Optional PWA Install) */}
+          {/* Right: Primary Contextual Actions (Microphone + Continue Reading + Optional PWA Install) */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
+            {onOpenMicrophone && (
+              <button
+                type="button"
+                onClick={onOpenMicrophone}
+                aria-label="Fitur Microphone (Pencarian Suara & Rekam Tilawah)"
+                title="Fitur Microphone (Pencarian Suara & Rekam Tilawah)"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-colors shrink-0 cursor-pointer border border-[#FBC647]/45 text-[#FBC647] hover:bg-white/10"
+                style={{ backgroundColor: 'var(--color-primary)' }}
+              >
+                <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onContinueReading}

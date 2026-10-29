@@ -27,6 +27,9 @@ export const CORE_STATIC_ASSETS: Array<{ id: string; url: string; label: string 
   { id: 'static:brand-logo', url: '/icons/ziezan-quran.png', label: 'Logo Identitas Ziezan Quran' },
   { id: 'static:bg-landscape', url: '/assets/aistudio/bg-landscape_42f05623.png', label: 'Visual Hero Masjid (Landscape)' },
   { id: 'static:bg-portrait', url: '/assets/aistudio/bg-potrait_806f7ab7.png', label: 'Visual Hero Masjid (Portrait)' },
+  { id: 'static:logo-kpm', url: '/assets/aistudio/Logo_KPM_b0b5caf5.png', label: 'Logo Yayasan Karya Pondok Mandiri' },
+  { id: 'static:logo-embi', url: '/assets/aistudio/Logo_Embi_Tech_c7a9c101.png', label: 'Logo Embi Tech Computindo' },
+  { id: 'static:logo-bbpvp', url: '/assets/aistudio/Logo-BBPVP-Bekasi_ee05602a.png', label: 'Logo BBPVP Bekasi' },
   { id: 'static:audio-chime', url: '/audio/adzan-chime.wav', label: 'Audio Nada Harmoni Adzan Lokal' },
   { id: 'static:audio-reminder', url: '/audio/shalat-reminder.wav', label: 'Audio Pengingat Salat Lokal' },
 ];

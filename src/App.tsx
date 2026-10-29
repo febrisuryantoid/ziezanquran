@@ -15,6 +15,7 @@ import { BookmarksView } from './components/BookmarksView';
 import { DoaView } from './components/DoaView';
 import { HijriCalendarView } from './components/HijriCalendarView';
 import { HomeView } from './components/HomeView';
+import { MicrophoneModal } from './components/MicrophoneModal';
 import { AboutView, MoreView } from './components/MoreView';
 import { FloatingBottomNav, Navbar } from './components/Navbar';
 import {
@@ -30,7 +31,14 @@ import { SplashScreen } from './components/SplashScreen';
 import { SurahListView } from './components/SurahListView';
 import { SurahReaderView } from './components/SurahReaderView';
 import { TafsirModal } from './components/TafsirModal';
-import { APP_CONFIG, APP_INFO, BRAND_LOGO_PATH, QARI_OPTIONS } from './config/brand';
+import {
+  APP_CONFIG,
+  APP_INFO,
+  BRAND_LOGO_PATH,
+  PARTNER_LOGOS,
+  QARI_OPTIONS,
+  YAYASAN_KPM_INFO,
+} from './config/brand';
 
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import {
@@ -93,6 +101,7 @@ export default function App() {
 
   const [cachedSurahCount, setCachedSurahCount] = useState<number>(0);
   const [offlineModalOpen, setOfflineModalOpen] = useState<boolean>(false);
+  const [micModalOpen, setMicModalOpen] = useState<boolean>(false);
 
   // Tafsir Modal State
   const [tafsirModalOpen, setTafsirModalOpen] = useState<boolean>(false);
@@ -1301,6 +1310,7 @@ export default function App() {
               ? loadSurahForReader(lastRead.surahNomor, lastRead.ayatNomor)
               : loadSurahForReader(1, 1)
           }
+          onOpenMicrophone={() => setMicModalOpen(true)}
         />
 
         {/* Offline-First Preparation Progress, Update & Connectivity Status Banner */}
@@ -1327,6 +1337,7 @@ export default function App() {
             }}
             onNavigateToBookmarks={() => handleSelectTab('bookmarks')}
             onSelectTab={(tab) => handleSelectTab(tab)}
+            onOpenMicrophone={() => setMicModalOpen(true)}
           />
         )}
 
@@ -1347,6 +1358,7 @@ export default function App() {
               handleSelectTab('search');
             }}
             onOpenBookmarks={() => handleSelectTab('bookmarks')}
+            onOpenMicrophone={() => setMicModalOpen(true)}
           />
         )}
 
@@ -1396,6 +1408,7 @@ export default function App() {
             arabicFontFamily={preferences.arabicFontFamily}
             arabicFontSize={preferences.arabicFontSize}
             onShowToast={showToast}
+            onOpenMicrophone={() => setMicModalOpen(true)}
           />
         )}
 
@@ -1409,6 +1422,7 @@ export default function App() {
             cachedSurahCount={cachedSurahCount}
             onUpdateCachedCount={setCachedSurahCount}
             onOpenSurah={(sNo, aNo) => loadSurahForReader(sNo, aNo)}
+            onOpenMicrophone={() => setMicModalOpen(true)}
           />
         )}
 
@@ -1444,6 +1458,7 @@ export default function App() {
             notesCount={notes.length}
             cachedSurahCount={cachedSurahCount}
             onOpenOfflineModal={() => setOfflineModalOpen(true)}
+            onOpenMicrophoneModal={() => setMicModalOpen(true)}
           />
         )}
 
@@ -1452,15 +1467,79 @@ export default function App() {
         )}
       </main>
 
-      {/* Minimal Quiet Footer with Semantic Attribution for Febri Suryanto & Ziezan Solutions */}
+      {/* Application Footer with Smooth Right-to-Left Partner Logo Auto-Slide & Attribution */}
       <footer
-        className="w-full border-t"
+        className="w-full border-t bg-white/85 backdrop-blur-xs"
         style={{
           borderColor: 'var(--color-border)',
           color: 'var(--color-text-secondary)',
         }}
       >
-        <div className="container-app py-4 text-center text-fluid-xs">
+        {/* Smooth Right-to-Left Auto-Sliding Partner Logos Marquee */}
+        <div
+          className="w-full py-3.5 sm:py-4 border-b"
+          style={{ borderColor: 'var(--color-border)' }}
+          aria-label="Mitra & Kolaborasi Kelembagaan"
+        >
+          <div className="container-app mb-2.5 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#035328]">
+              Didukung &amp; Berkolaborasi Bersama
+            </span>
+            <button
+              type="button"
+              onClick={() => handleSelectTab('about')}
+              className="text-[11px] font-semibold text-[#046D38] hover:underline cursor-pointer"
+            >
+              Lihat Alamat {YAYASAN_KPM_INFO.name} &rarr;
+            </button>
+          </div>
+
+          <div className="ziezan-footer-marquee-mask">
+            <div className="ziezan-footer-marquee-track">
+              {[0, 1].map((halfIdx) => (
+                <div
+                  key={`marquee-half-${halfIdx}`}
+                  aria-hidden={halfIdx === 1}
+                  className="flex items-center gap-3.5 sm:gap-5 pr-3.5 sm:pr-5 shrink-0"
+                >
+                  {[...PARTNER_LOGOS, ...PARTNER_LOGOS, ...PARTNER_LOGOS, ...PARTNER_LOGOS].map(
+                    (partner, idx) => (
+                      <button
+                        key={`${partner.id}-${halfIdx}-${idx}`}
+                        type="button"
+                        tabIndex={halfIdx === 1 ? -1 : 0}
+                        onClick={() => handleSelectTab('about')}
+                        title={`${partner.name} — ${partner.role}`}
+                        className="group flex items-center gap-3 px-3.5 sm:px-4 py-2 rounded-2xl bg-white border border-[#E3E9E3] hover:border-[#046D38] shadow-[0_2px_10px_rgba(3,83,40,0.04)] transition-all duration-300 shrink-0 cursor-pointer text-left"
+                      >
+                        <div className="h-10 sm:h-11 px-1.5 flex items-center justify-center shrink-0">
+                          <img
+                            src={partner.logoPath}
+                            alt={partner.name}
+                            className={`${partner.aspectClass} object-contain`}
+                            loading="eager"
+                            decoding="async"
+                          />
+                        </div>
+                        <div className="pr-1">
+                          <p className="text-xs sm:text-[13px] font-bold text-[#24352B] group-hover:text-[#046D38] transition-colors whitespace-nowrap">
+                            {partner.shortName}
+                          </p>
+                          <p className="text-[10px] sm:text-[11px] text-[#68756C] whitespace-nowrap">
+                            {partner.role}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Attribution & Quick Link to Tentang Aplikasi */}
+        <div className="container-app py-3.5 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left text-fluid-xs">
           <span>
             &copy; {new Date().getFullYear()}{' '}
             <strong style={{ color: 'var(--color-text-primary)' }}>{APP_CONFIG.appName}</strong>
@@ -1472,8 +1551,37 @@ export default function App() {
             ({APP_INFO.developerRole},{' '}
             <strong style={{ color: 'var(--color-primary)' }}>{APP_INFO.agencyName}</strong>)
           </span>
+
+          <button
+            type="button"
+            onClick={() => handleSelectTab('about')}
+            className="text-xs font-semibold text-[#046D38] hover:underline cursor-pointer"
+          >
+            Tentang Aplikasi &amp; Alamat Yayasan
+          </button>
         </div>
       </footer>
+
+      {/* Universal Cross-Device, Cross-OS & Cross-Browser Microphone Modal */}
+      <MicrophoneModal
+        isOpen={micModalOpen}
+        onClose={() => setMicModalOpen(false)}
+        surahs={surahs}
+        onApplyQuery={(q) => {
+          setSearchInitialQuery(q);
+          handleSelectTab('search');
+        }}
+        onOpenSurah={(sNo, aNo) => loadSurahForReader(sNo, aNo)}
+        onSelectTab={(tab) => handleSelectTab(tab)}
+        onPauseBackgroundAudio={() => {
+          handleStopAdzanAudio();
+          if (audioRef.current && !audioRef.current.paused) {
+            audioRef.current.pause();
+            setPlayback((prev) => (prev ? { ...prev, isPlaying: false } : null));
+          }
+        }}
+        onShowToast={showToast}
+      />
 
       {/* Offline-First & PWA Control Center Modal */}
       <OfflineManagerModal

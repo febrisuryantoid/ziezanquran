@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
+  Mic,
+  MicOff,
   Search,
   Sparkles,
   X,
@@ -11,6 +13,7 @@ import {
   QUICK_VERSES,
   SUGGESTED_SEARCH_TOPICS,
 } from '../config/brand';
+import { useUniversalVoiceSearch } from '../hooks/useUniversalVoiceSearch';
 import { quranApi } from '../services/quranApi';
 import {
   ReadingPreferences,
@@ -25,6 +28,7 @@ interface SearchViewProps {
   cachedSurahCount: number;
   onUpdateCachedCount: (count: number) => void;
   onOpenSurah: (surahNomor: number, ayatNomor?: number) => void;
+  onOpenMicrophone?: () => void;
 }
 
 type ResultTab = 'ALL' | 'SURAH' | 'AYAT';
@@ -59,6 +63,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
   cachedSurahCount,
   onUpdateCachedCount,
   onOpenSurah,
+  onOpenMicrophone,
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [selectedSurahFilter, setSelectedSurahFilter] = useState<number | null>(null);
@@ -67,6 +72,19 @@ export const SearchView: React.FC<SearchViewProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [indexedCount, setIndexedCount] = useState(cachedSurahCount);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const { isListening, toggleVoiceSearch } = useUniversalVoiceSearch({
+    surahs,
+    onTranscriptChange: (text) => setQuery(text),
+    onFinalIntent: (intent) => {
+      if (intent.cleanedQuery) {
+        setQuery(intent.cleanedQuery);
+      }
+    },
+    onOpenFallbackModal: () => {
+      onOpenMicrophone?.();
+    },
+  });
 
   const arabicFontClass = useMemo(() => {
     const found = ARABIC_FONT_OPTIONS.find((f) => f.id === preferences.arabicFontFamily);
@@ -169,24 +187,43 @@ export const SearchView: React.FC<SearchViewProps> = ({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ketik kata (sabar, syukur, doa), nama surat, atau 2:255..."
+              placeholder="Ketik atau ucapkan kata (sabar, syukur), surat, atau 2:255..."
               aria-label="Kata kunci pencarian Al-Qur'an"
-              className="w-full min-h-[42px] pl-10 pr-10 py-2 rounded-full border text-xs sm:text-sm bg-[#F7F8F5] focus:bg-white focus:outline-none transition-colors"
+              className="w-full min-h-[42px] pl-10 pr-20 py-2 rounded-full border text-xs sm:text-sm bg-[#F7F8F5] focus:bg-white focus:outline-none transition-colors"
               style={{
                 borderColor: 'var(--color-border)',
                 color: 'var(--color-text-primary)',
               }}
             />
-            {query && (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-stone-200/60 cursor-pointer"
+                  aria-label="Hapus kata kunci"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setQuery('')}
-                className="w-7 h-7 rounded-full flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 hover:bg-stone-200/60 cursor-pointer"
-                aria-label="Hapus kata kunci"
+                onClick={() => toggleVoiceSearch('id-ID')}
+                aria-label={isListening ? 'Hentikan perekaman suara' : 'Pencarian dengan suara mikrofon'}
+                title="Cari Ayat dengan Suara (Microphone)"
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                  isListening
+                    ? 'bg-[#E53935] text-white animate-pulse'
+                    : 'bg-[#046D38] hover:bg-[#035328] text-white'
+                }`}
               >
-                <X className="w-4 h-4" />
+                {isListening ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
               </button>
-            )}
+            </div>
           </div>
 
           <div className="md:col-span-4 min-w-0">

@@ -348,13 +348,60 @@ audio {
   html {
     scroll-behavior: auto;
   }
-  *,
-  *::before,
-  *::after {
+  *:not(.ziezan-footer-marquee-track),
+  *:not(.ziezan-footer-marquee-track)::before,
+  *:not(.ziezan-footer-marquee-track)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Smooth Right-to-Left Partner Logo Auto-Slide Marquee in Footer */
+@keyframes ziezanMarqueeRtl {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.ziezan-footer-marquee-mask {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000000 6%,
+    #000000 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000000 6%,
+    #000000 94%,
+    transparent 100%
+  );
+}
+
+.ziezan-footer-marquee-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translate3d(0, 0, 0);
+  animation: ziezanMarqueeRtl 85s linear infinite;
+}
+
+.ziezan-footer-marquee-mask:hover .ziezan-footer-marquee-track,
+.ziezan-footer-marquee-mask:focus-within .ziezan-footer-marquee-track {
+  animation-play-state: paused;
 }
 
 /* Responsive Beranda Background (Portrait vs Landscape) */

@@ -1,6 +1,6 @@
 {
   "name": "Ziezan Quran",
   "description": "Dekat dengan Al-Qur'an, Tenang dalam Kehidupan. Aplikasi Al-Qur'an Digital premium dengan terjemahan Indonesia, tafsir lengkap, audio murottal 6 qari, pencarian makna ayat, auto-scroll, dan dukungan PWA.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["microphone", "geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -44,6 +44,7 @@ import {
   ReadingProgress,
   SurahSummary,
 } from '../types/quran';
+import { useUniversalVoiceSearch } from '../hooks/useUniversalVoiceSearch';
 
 interface HomeViewProps {
   surahs: SurahSummary[];
@@ -57,6 +58,7 @@ interface HomeViewProps {
   onNavigateToSurahList: (initialMode?: 'SURAH' | 'JUZ') => void;
   onNavigateToBookmarks: () => void;
   onSelectTab: (tab: ActiveTab) => void;
+  onOpenMicrophone?: () => void;
 }
 
 const TOTAL_QURAN_AYATS = 6236;
@@ -98,9 +100,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onNavigateToSearch,
   onNavigateToSurahList,
   onSelectTab,
+  onOpenMicrophone,
 }) => {
   const [quickSearch, setQuickSearch] = useState('');
-  const [isListeningVoice, setIsListeningVoice] = useState(false);
   const [voiceToast, setVoiceToast] = useState<string | null>(null);
 
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
@@ -116,7 +118,48 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [shalatSummary, setShalatSummary] = useState<ShalatMonthlyData | null>(null);
   const [nowTick, setNowTick] = useState<Date>(() => new Date());
 
-  const recognitionRef = useRef<any>(null);
+  const showTempVoiceToast = (msg: string, duration = 3200) => {
+    setVoiceToast(msg);
+    window.setTimeout(() => setVoiceToast(null), duration);
+  };
+
+  const { isListening: isListeningVoice, toggleVoiceSearch } = useUniversalVoiceSearch({
+    surahs,
+    onTranscriptChange: (text) => {
+      setQuickSearch(text);
+    },
+    onFinalIntent: (intent) => {
+      if (intent.matchedSurah) {
+        showTempVoiceToast(intent.summaryLabel, 2500);
+        window.setTimeout(() => {
+          onOpenSurah(
+            intent.matchedSurah!.surahNomor,
+            intent.matchedSurah!.ayatNomor || 1
+          );
+        }, 550);
+        return;
+      }
+      if (intent.matchedTab && intent.matchedTab !== 'reader') {
+        showTempVoiceToast(intent.summaryLabel, 2500);
+        window.setTimeout(() => {
+          onSelectTab(intent.matchedTab!);
+        }, 550);
+        return;
+      }
+      if (intent.cleanedQuery) {
+        showTempVoiceToast(`Menemukan: "${intent.cleanedQuery}"`, 2500);
+        window.setTimeout(() => {
+          onNavigateToSearch(intent.cleanedQuery);
+        }, 550);
+      }
+    },
+    onOpenFallbackModal: () => {
+      onOpenMicrophone?.();
+    },
+    onToast: (msg) => {
+      showTempVoiceToast(msg, 3200);
+    },
+  });
 
   const fallbackHijriStr = useMemo(() => getFormattedIslamicDate(), []);
   const gregorianDateStr = useMemo(() => getFormattedGregorianDate(), []);
@@ -186,99 +229,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
-  // Robust Speak-to-Text Handler with Web Speech API
   const handleVoiceSearch = () => {
-    // If currently recording, tap to stop cleanly
-    if (isListeningVoice && recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {
-        // Ignore
-      }
-      setIsListeningVoice(false);
-      setVoiceToast('Perekaman suara dihentikan.');
-      setTimeout(() => setVoiceToast(null), 2500);
-      return;
-    }
-
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any })
-        .SpeechRecognition ||
-      (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any })
-        .webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setVoiceToast('Pencarian suara tidak didukung di peramban ini. Silakan ketik kata kunci.');
-      setTimeout(() => setVoiceToast(null), 3500);
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-      recognition.lang = 'id-ID';
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.continuous = false;
-
-      recognition.onstart = () => {
-        setIsListeningVoice(true);
-        setVoiceToast('Mendengarkan ucapan Anda... Ucapkan nama surat atau kata kunci.');
-      };
-
-      recognition.onresult = (event: any) => {
-        let interimStr = '';
-        let finalStr = '';
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const trans = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalStr += trans;
-          } else {
-            interimStr += trans;
-          }
-        }
-
-        const currentSpoken = (finalStr || interimStr).trim();
-        if (currentSpoken) {
-          setQuickSearch(currentSpoken);
-        }
-
-        if (finalStr.trim()) {
-          setIsListeningVoice(false);
-          setVoiceToast(`Menemukan: "${finalStr.trim()}"`);
-          setTimeout(() => {
-            setVoiceToast(null);
-            onNavigateToSearch(finalStr.trim());
-          }, 800);
-        }
-      };
-
-      recognition.onerror = (evt: any) => {
-        setIsListeningVoice(false);
-        const errType = evt?.error;
-        if (errType === 'not-allowed' || errType === 'service-not-allowed') {
-          setVoiceToast('Izin mikrofon belum diberikan. Izinkan akses mikrofon di pengaturan browser Anda.');
-        } else if (errType === 'no-speech') {
-          setVoiceToast('Suara tidak terdeteksi. Silakan coba lagi.');
-        } else if (errType === 'network') {
-          setVoiceToast('Masalah koneksi saat mengenali suara.');
-        } else {
-          setVoiceToast('Suara tidak terdengar jelas. Silakan coba lagi atau ketik.');
-        }
-        setTimeout(() => setVoiceToast(null), 3500);
-      };
-
-      recognition.onend = () => {
-        setIsListeningVoice(false);
-      };
-
-      recognition.start();
-    } catch {
-      setIsListeningVoice(false);
-      setVoiceToast('Gagal mengakses mikrofon.');
-      setTimeout(() => setVoiceToast(null), 3000);
-    }
+    toggleVoiceSearch('id-ID');
   };
 
   // Toggle Daily Tasks
@@ -385,23 +337,37 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
             </div>
 
-            {/* Notification Bell with Dynamic Task / Prayer Badge */}
-            <button
-              type="button"
-              onClick={() => setShowNotifDrawer(true)}
-              aria-label="Pengingat Waktu Salat & Tugas Harian"
-              title="Buka Pengingat & Tugas Ibadah Harian"
-              className="relative w-10 h-10 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-xs flex items-center justify-center text-white transition-transform active:scale-95 shrink-0 cursor-pointer shadow-sm"
-            >
-              <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" />
-              {pendingTaskCount > 0 ? (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] px-1 rounded-full bg-[#E53935] text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white shadow-xs">
-                  {pendingTaskCount}
-                </span>
-              ) : (
-                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#046D38] ring-2 ring-white" />
+            {/* Quick Action Buttons: Universal Microphone Menu & Notification Bell */}
+            <div className="flex items-center gap-2 shrink-0">
+              {onOpenMicrophone && (
+                <button
+                  type="button"
+                  onClick={onOpenMicrophone}
+                  aria-label="Menu Fitur Microphone (Pencarian Suara & Rekam Tilawah)"
+                  title="Buka Menu Fitur Microphone Universal"
+                  className="w-10 h-10 rounded-full bg-[#046D38]/90 hover:bg-[#035328] border border-[#FBC647]/50 backdrop-blur-xs flex items-center justify-center text-[#FBC647] transition-transform active:scale-95 shrink-0 cursor-pointer shadow-sm"
+                >
+                  <Mic className="w-5 h-5 drop-shadow" />
+                </button>
               )}
-            </button>
+
+              <button
+                type="button"
+                onClick={() => setShowNotifDrawer(true)}
+                aria-label="Pengingat Waktu Salat & Tugas Harian"
+                title="Buka Pengingat & Tugas Ibadah Harian"
+                className="relative w-10 h-10 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-xs flex items-center justify-center text-white transition-transform active:scale-95 shrink-0 cursor-pointer shadow-sm"
+              >
+                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" />
+                {pendingTaskCount > 0 ? (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] px-1 rounded-full bg-[#E53935] text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white shadow-xs">
+                    {pendingTaskCount}
+                  </span>
+                ) : (
+                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#046D38] ring-2 ring-white" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Greeting & Hijri Date + Quick Search (Side-by-Side in Mobile Landscape) */}

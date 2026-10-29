@@ -26,7 +26,7 @@
         },
         {
           "key": "Permissions-Policy",
-          "value": "geolocation=(self), magnetometer=(self), gyroscope=(self), accelerometer=(self), camera=(), microphone=(), payment=(), usb=()"
+          "value": "geolocation=(self), magnetometer=(self), gyroscope=(self), accelerometer=(self), microphone=(self), camera=(), payment=(), usb=()"
         },
         {
           "key": "Cross-Origin-Opener-Policy",

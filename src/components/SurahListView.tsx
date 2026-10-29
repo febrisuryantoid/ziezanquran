@@ -4,6 +4,8 @@ import {
   ArrowUpDown,
   BookOpen,
   Layers,
+  Mic,
+  MicOff,
   Pause,
   Play,
   RefreshCw,
@@ -11,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { JUZ_LIST } from '../config/brand';
+import { useUniversalVoiceSearch } from '../hooks/useUniversalVoiceSearch';
 import { AudioPlaybackState, SurahSummary } from '../types/quran';
 
 interface SurahListViewProps {
@@ -26,6 +29,7 @@ interface SurahListViewProps {
   onPlayFullSurah: (surah: SurahSummary) => void;
   onOpenSearch?: (initialQuery?: string) => void;
   onOpenBookmarks?: () => void;
+  onOpenMicrophone?: () => void;
 }
 
 type PlaceFilter = 'ALL' | 'JUZ_AMMA' | 'Mekah' | 'Madinah';
@@ -44,11 +48,27 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
   onPlayFullSurah,
   onOpenSearch: _onOpenSearch,
   onOpenBookmarks: _onOpenBookmarks,
+  onOpenMicrophone,
 }) => {
   const [directoryMode, setDirectoryMode] = useState<'SURAH' | 'JUZ'>(initialMode);
   const [filterText, setFilterText] = useState('');
   const [placeFilter, setPlaceFilter] = useState<PlaceFilter>('ALL');
   const [sortMode, setSortMode] = useState<SortMode>('NOMOR_ASC');
+
+  const { isListening, toggleVoiceSearch } = useUniversalVoiceSearch({
+    surahs,
+    onTranscriptChange: (text) => setFilterText(text),
+    onFinalIntent: (intent) => {
+      if (intent.matchedSurah) {
+        setFilterText(intent.matchedSurah.surahNamaLatin);
+      } else if (intent.cleanedQuery) {
+        setFilterText(intent.cleanedQuery);
+      }
+    },
+    onOpenFallbackModal: () => {
+      onOpenMicrophone?.();
+    },
+  });
 
   useEffect(() => {
     setDirectoryMode(initialMode);
@@ -174,26 +194,45 @@ export const SurahListView: React.FC<SurahListViewProps> = ({
               onChange={(e) => setFilterText(e.target.value)}
               placeholder={
                 directoryMode === 'SURAH'
-                  ? 'Cari nama surat, nomor (1-114), atau arti...'
-                  : 'Cari nomor Juz (1-30), nama Juz, atau nama surat...'
+                  ? 'Cari atau ucapkan nama surat, nomor (1-114), atau arti...'
+                  : 'Cari atau ucapkan nomor Juz (1-30) atau nama surat...'
               }
               aria-label="Saring daftar"
-              className="w-full min-h-[40px] sm:min-h-[42px] pl-10 pr-9 py-2 rounded-full border text-xs sm:text-sm bg-[#F7F8F5] focus:bg-white focus:outline-none transition-colors"
+              className="w-full min-h-[40px] sm:min-h-[42px] pl-10 pr-20 py-2 rounded-full border text-xs sm:text-sm bg-[#F7F8F5] focus:bg-white focus:outline-none transition-colors"
               style={{
                 borderColor: 'var(--color-border)',
                 color: 'var(--color-text-primary)',
               }}
             />
-            {filterText && (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {filterText && (
+                <button
+                  type="button"
+                  onClick={() => setFilterText('')}
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-stone-200/60 cursor-pointer"
+                  aria-label="Hapus filter"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setFilterText('')}
-                className="w-7 h-7 rounded-full flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 hover:bg-stone-200/60 cursor-pointer"
-                aria-label="Hapus filter"
+                onClick={() => toggleVoiceSearch('id-ID')}
+                aria-label={isListening ? 'Hentikan perekaman suara' : 'Cari surat dengan suara mikrofon'}
+                title="Cari Surat/Juz dengan Suara (Microphone)"
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                  isListening
+                    ? 'bg-[#E53935] text-white animate-pulse'
+                    : 'bg-[#046D38] hover:bg-[#035328] text-white'
+                }`}
               >
-                <X className="w-3.5 h-3.5" />
+                {isListening ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
               </button>
-            )}
+            </div>
           </div>
 
           {directoryMode === 'SURAH' && (
